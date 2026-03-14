@@ -1,133 +1,258 @@
 ﻿@{
-    ViewData["Title"] = "Anket Kategorileri";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+	ViewData["Title"] = "Anket Kategorileri";
+	Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
-    <h1 class="h3 mb-0 text-gray-800">Anket Kategorileri Yönetimi</h1>
-    <button class="d-none d-sm-inline-block btn btn-primary shadow-sm" id="btnEkle">
-        <i class="fas fa-plus text-white-50"></i> Yeni Kategori Ekle
-    </button>
+	<h1 class="h3 mb-0 text-gray-800">Anket Kategorileri Yönetimi</h1>
+	<button class="d-none d-sm-inline-block btn btn-primary shadow-sm" id="btnYeniEkle" data-toggle="modal" data-target="#kategoriModal">
+		<i class="fas fa-plus text-white-50"></i> Yeni Kategori Ekle
+	</button>
 </div>
 
 <div class="row" id="categoryCards">
-    <div class="col-12 text-center mt-5" id="loader">
-        <div class="spinner-border text-primary" role="status"></div>
-        <p class="mt-2 font-weight-bold text-gray-600">Sistem Hazırlanıyor...</p>
-    </div>
+	<div class="col-12 text-center mt-5" id="loader">
+		<div class="spinner-border text-primary" role="status"></div>
+		<p class="mt-2 font-weight-bold text-gray-600">Veriler Yükleniyor...</p>
+	</div>
+</div>
+
+<div class="modal fade" id="kategoriModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static">
+	<div class="modal-dialog modal-dialog-centered" role="document">
+		<div class="modal-content border-0 shadow-lg">
+			<div class="modal-header bg-primary text-white">
+				<h5 class="modal-title" id="divTitle">Yeni Kategori Ekle</h5>
+				<button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body p-4">
+				<input type="hidden" id="txtId" />
+
+				<div class="form-group">
+					<label class="font-weight-bold text-gray-800">Kategori Adı</label>
+					<input type="text" class="form-control form-control-solid" id="txtName" placeholder="Örn: Eğitim Anketleri" />
+				</div>
+
+				<div class="form-group mt-3">
+					<label class="font-weight-bold text-gray-800">Kategori Açıklaması</label>
+					<textarea class="form-control form-control-solid" id="txtDescription" rows="2" placeholder="Kategori hakkında bilgi giriniz..."></textarea>
+				</div>
+
+				<div class="custom-control custom-switch mt-3">
+					<input type="checkbox" class="custom-control-input" id="cbIsActive" checked>
+					<label class="custom-control-label font-weight-bold text-gray-800" for="cbIsActive">Kategori Aktif mi?</label>
+				</div>
+
+				<div class="alert mt-3" id="divResult" style="display:none;"></div>
+			</div>
+			<div class="modal-footer bg-light">
+				<button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fas fa-times"></i> İptal</button>
+				<button type="button" class="btn btn-primary" id="btnSave"><i class="fas fa-save"></i> Kaydet</button>
+				<button type="button" class="btn btn-warning text-white" id="btnEdit" style="display:none;"><i class="fas fa-edit"></i> Güncelle</button>
+			</div>
+		</div>
+	</div>
 </div>
 
 @section Scripts {
-    <script>
-        $(document).ready(function () {
+	<script>
+			   $(document).ready(function () {
+			var apiBaseUrl = "https://localhost:7258/";
 
-            var ApiBaseUrl = "@ViewBag.ApiBaseUrl";
+			function KategoriListele() {
+				$("#loader").show();
+				$.ajax({
+					url: apiBaseUrl + "api/Category",
+					type: "GET",
+					success: function (data) {
+						$("#loader").hide();
+						KartlariOlustur(data);
+					},
+					error: function () {
+						$("#loader").hide();
+						$("#categoryCards").html('<div class="alert alert-danger w-100 text-center">API Bağlantı Hatası!</div>');
+					}
+				});
+			}
 
-            function KategoriListele() {
-                $.ajax({
-                    url: ApiBaseUrl + "api/Category",
-                    method: "GET",
-                    success: function (data) {
-                        $("#loader").hide();
-                        KartlariOlustur(data);
-                    },
-                    error: function (err) {
-                        $("#loader").hide();
-                        $("#categoryCards").html('<div class="col-12"><div class="alert alert-danger shadow-sm">Bağlantı hatası! Lütfen API projenizi kontrol edin.</div></div>');
-                    }
-                });
-            }
 
-            function KartlariOlustur(data) {
-                $("#categoryCards").empty();
-                var html = "";
+				function KartlariOlustur(data) {
+			$("#categoryCards").empty();
+			var html = "";
 
-                var gorulenKategoriler = [];
+			$.each(data, function (index, item) {
+				var isActive = item.isActive !== undefined ? item.isActive : item.IsActive;
+				var name = item.name || item.Name;
+				var id = item.id || item.Id;
 
-                $.each(data, function (index, item) {
+				var durumBadge = isActive === true ? '<span class="badge badge-success px-2 py-1">Aktif</span>' : '<span class="badge badge-danger px-2 py-1">Pasif</span>';
+				html += `
+					<div class="col-xl-4 col-md-6 mb-4">
+						<div class="card border-left-primary shadow h-100 py-2">
+							<div class="card-body">
+								<div class="row no-gutters align-items-center">
+									<div class="col mr-2">
+										<div class="text-xs font-weight-bold text-primary mb-1">DURUM: ${durumBadge}</div>
+										<div class="h5 mb-0 font-weight-bold text-gray-800">${name}</div>
+									</div>
+									<div class="col-auto"><i class="fas fa-folder fa-2x text-gray-300"></i></div>
+								</div>
+							</div>
+							<div class="card-footer bg-white border-0 text-center pt-0">
+								<hr class="mt-0 mb-2">
+								<a href="/Survey/Index/${id}" class="btn btn-info btn-sm" title="Bu Kategorinin Anketlerini Gör">
+									<i class="fas fa-list"></i>
+								</a>
+								<button class="btn btn-warning btn-sm btnDuzenleModal" data-id="${id}" title="Düzenle"><i class="fas fa-edit"></i></button>
+								<button class="btn btn-danger btn-sm btnSil" data-id="${id}" title="Sil"><i class="fas fa-trash"></i></button>
+							</div>
+						</div>
+					</div>`;
+			});
+			$("#categoryCards").html(html);
+		}
 
-                    var kategoriAdi = item.name.trim().toLowerCase();
-                    if (gorulenKategoriler.includes(kategoriAdi)) {
-                        return true; 
-                    }
-                    gorulenKategoriler.push(kategoriAdi); 
+			KategoriListele();
 
-                    var durumBadge = item.isActive
-                        ? '<span class="badge badge-success px-2 py-1">Aktif</span>'
-                        : '<span class="badge badge-danger px-2 py-1">Pasif</span>';
 
-                    var toggleColor = item.isActive ? "btn-success" : "btn-secondary";
-                    var toggleIcon = item.isActive ? "fa-toggle-on" : "fa-toggle-off";
-                    var toggleTitle = item.isActive ? "Pasif Yap" : "Aktif Yap";
+			$(document).on("click", "#btnYeniEkle", function(){
+				$("#divTitle").html("Yeni Kategori Ekle");
+				$("#txtId").val("0");
+				$("#txtName").val("");
+				$("#txtDescription").val("");
+				$("#cbIsActive").prop("checked", true);
 
-                    html += `
-                        <div class="col-xl-4 col-md-6 mb-4">
-                            <div class="card border-left-primary shadow h-100 py-2">
-                                <div class="card-body">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1 durum-alani">
-                                                Durum: ${durumBadge}
-                                            </div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800">${item.name}</div>
-                                            <p class="mt-2 text-sm text-gray-600">${item.description}</p>
-                                        </div>
-                                        <div class="col-auto">
-                                            <i class="fas fa-folder-open fa-2x text-gray-300"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="card-footer bg-white border-0 text-center pt-0">
-                                    <hr class="mt-0 mb-2">
+				$("#btnSave").show();
+				$("#btnEdit").hide();
+				$("#divResult").hide();
+			});
 
-                                    <a href="/Surveys/${item.id}" class="btn btn-info px-3" title="Anketleri Göster">
-                                        <i class="fas fa-list"></i> Anketler
-                                    </a>
 
-                                    <button class="btn ${toggleColor} px-3 btn-durum" data-id="${item.id}" data-isactive="${item.isActive}" title="${toggleTitle}">
-                                        <i class="fas ${toggleIcon} fa-lg"></i>
-                                    </button>
+			$(document).on("click", "#btnSave", function(){
+				var kategoriAdi = $("#txtName").val().trim();
+				var aciklama = $("#txtDescription").val().trim();
 
-                                    <button class="btn btn-warning px-3 btn-duzenle" data-id="${item.id}" title="Düzenle">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
+				if(kategoriAdi === ""){
+					$("#divResult").show().removeClass().addClass("alert alert-danger").html("Kategori Adı Boş Olamaz!").fadeOut(5000);
+					return false;
+				}
+				if(aciklama === "") aciklama = "-";
 
-                                    <button class="btn btn-danger px-3 btn-sil" data-id="${item.id}" title="Sil">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                });
 
-                $("#categoryCards").html(html);
-            }
+				var category = {
+					id: 0,
+					name: kategoriAdi,
+					description: aciklama,
+					isActive: $("#cbIsActive").prop("checked") ? true : false
+				};
 
-            KategoriListele();
+				$.ajax({
+					url: apiBaseUrl + "api/Category",
+					type: "POST",
+					contentType: "application/json",
+					data: JSON.stringify(category),
+					success: function (d) {
+						if (d.status){
+							$("#divResult").show().removeClass().addClass("alert alert-success").html(d.message).fadeOut(5000);
+							KategoriListele();
+							setTimeout(function() { $('#kategoriModal').modal('hide'); }, 1500);
+						} else {
+							$("#divResult").show().removeClass().addClass("alert alert-danger").html(d.message).fadeOut(5000);
+						}
+					},
+					error: function (xhr) {
+						alert("API REDDETTİ! Sebebi:\n" + xhr.responseText);
+						$("#divResult").show().removeClass().addClass("alert alert-danger").html("Kayıt Başarısız. Ekrana çıkan uyarıyı okuyun.").fadeOut(8000);
+					}
+				});
+			});
 
-            $(document).on("click", ".btn-durum", function () {
-                var buton = $(this);
-                var kart = buton.closest(".card");
+			$(document).on("click", ".btnDuzenleModal", function(){
+				var id = $(this).attr("data-id");
 
-                var mevcutDurum = buton.data("isactive");
-                var yeniDurum = (mevcutDurum === true || mevcutDurum === "true") ? false : true;
+				$.ajax({
+					url: apiBaseUrl + "api/Category/" + id,
+					type: "GET",
+					success: function (d) {
+						$("#divTitle").html("Kategori Düzenle");
+						$("#txtId").val(d.id || d.Id);
+						$("#txtName").val(d.name || d.Name);
+						$("#txtDescription").val(d.description || d.Description || "");
 
-                buton.data("isactive", yeniDurum);
+						var aktifMi = d.isActive !== undefined ? d.isActive : d.IsActive;
+						$("#cbIsActive").prop("checked", aktifMi === true);
 
-                if (yeniDurum === true) {
-                    buton.removeClass("btn-secondary").addClass("btn-success");
-                    buton.find("i").removeClass("fa-toggle-off").addClass("fa-toggle-on");
-                    buton.attr("title", "Pasif Yap");
-                    kart.find(".durum-alani").html('Durum: <span class="badge badge-success px-2 py-1">Aktif</span>');
-                } else {
-                    buton.removeClass("btn-success").addClass("btn-secondary");
-                    buton.find("i").removeClass("fa-toggle-on").addClass("fa-toggle-off");
-                    buton.attr("title", "Aktif Yap");
-                    kart.find(".durum-alani").html('Durum: <span class="badge badge-danger px-2 py-1">Pasif</span>');
-                }
-            });
+						$("#btnSave").hide();
+						$("#btnEdit").show();
+						$("#divResult").hide();
 
-        });
-    </script>
+						$('#kategoriModal').modal('show');
+					}
+				});
+			});
+
+
+			$(document).on("click", "#btnEdit", function(){
+				var kategoriAdi = $("#txtName").val().trim();
+				var aciklama = $("#txtDescription").val().trim();
+				var idDegeri = parseInt($("#txtId").val()) || 0;
+
+				if(kategoriAdi === ""){
+					$("#divResult").show().removeClass().addClass("alert alert-danger").html("Kategori Adı Boş Olamaz!").fadeOut(5000);
+					return false;
+				}
+				if(aciklama === "") aciklama = "-";
+
+
+				var category = {
+					id: idDegeri,
+					name: kategoriAdi,
+					description: aciklama,
+					isActive: $("#cbIsActive").prop("checked") ? true : false
+				};
+
+				$.ajax({
+					url: apiBaseUrl + "api/Category",
+					type: "PUT",
+					contentType: "application/json",
+					data: JSON.stringify(category),
+					success: function (d) {
+						if (d.status){
+							$("#divResult").show().removeClass().addClass("alert alert-success").html(d.message).fadeOut(5000);
+							KategoriListele();
+							setTimeout(function() { $('#kategoriModal').modal('hide'); }, 1500);
+						} else {
+							$("#divResult").show().removeClass().addClass("alert alert-danger").html(d.message).fadeOut(5000);
+						}
+					},
+					error: function (xhr) {
+						alert("API REDDETTİ! Sebebi:\n" + xhr.responseText);
+						$("#divResult").show().removeClass().addClass("alert alert-danger").html("Güncelleme Başarısız. Ekrana çıkan uyarıyı okuyun.").fadeOut(8000);
+					}
+				});
+			});
+
+
+
+			$(document).on("click", ".btnSil", function(){
+				var id = $(this).attr("data-id");
+
+				if(confirm("Bu kategoriyi silmek istediğinize emin misiniz?")) {
+					$.ajax({
+						url: apiBaseUrl + "api/Category/" + id,
+						type: "DELETE",
+						success: function (d) {
+							if (d.status){
+								alert(d.message);
+								KategoriListele();
+							} else {
+								alert(d.message);
+							}
+						}
+					});
+				}
+			});
+		});
+	</script>
 }
