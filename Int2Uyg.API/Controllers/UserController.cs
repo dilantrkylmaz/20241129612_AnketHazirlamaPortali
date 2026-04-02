@@ -210,5 +210,34 @@ namespace Int2Uyg.API.Controllers
 
             return result;
         }
+        [HttpPost]
+        [Authorize(Roles = "Admin")] 
+        public async Task<ResultDto> ChangeRole(RoleAssignDto dto)
+        {
+
+            var user = await _userManager.FindByIdAsync(dto.UserId);
+            if (user == null)
+            {
+                result.Status = false;
+                result.Message = "Kullanıcı bulunamadı!";
+                return result;
+            }
+            var roleExists = await _roleManager.RoleExistsAsync(dto.RoleName);
+            if (!roleExists)
+            {
+                result.Status = false;
+                result.Message = "Böyle bir rol bulunmuyor! Sadece 'Admin' veya 'Uye' gönderebilirsiniz.";
+                return result;
+            }
+
+            var currentRoles = await _userManager.GetRolesAsync(user);
+            await _userManager.RemoveFromRolesAsync(user, currentRoles);
+
+            await _userManager.AddToRoleAsync(user, dto.RoleName);
+
+            result.Status = true;
+            result.Message = $"Kullanıcının yetkisi başarıyla '{dto.RoleName}' olarak değiştirildi.";
+            return result;
+        }
     }
 }

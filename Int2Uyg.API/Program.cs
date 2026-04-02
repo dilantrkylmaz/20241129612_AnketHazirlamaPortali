@@ -100,6 +100,39 @@ namespace Int2Uyg.API
 
             var app = builder.Build();
 
+            using (var scope = app.Services.CreateScope())
+            {
+                var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<AppRole>>();
+                var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
+
+                if (!roleManager.RoleExistsAsync("Admin").Result)
+                {
+                    roleManager.CreateAsync(new AppRole { Name = "Admin" }).Wait();
+                }
+                if (!roleManager.RoleExistsAsync("Uye").Result)
+                {
+                    roleManager.CreateAsync(new AppRole { Name = "Uye" }).Wait();
+                }
+                if (userManager.FindByNameAsync("admin").Result == null)
+                {
+                    var adminUser = new AppUser
+                    {
+                        UserName = "admin",
+                        Email = "admin@sistem.com",
+                        FullName = "Sistem Yöneticisi",
+                        PhoneNumber = "05550000000",
+                        PhotoUrl = "profil.jpg"
+                    };
+
+                    var result = userManager.CreateAsync(adminUser, "Admin123!").Result;
+                    if (result.Succeeded)
+                    {
+                        userManager.AddToRoleAsync(adminUser, "Admin").Wait();
+                    }
+                }
+            }
+
+
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();

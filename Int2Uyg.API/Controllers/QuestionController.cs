@@ -31,7 +31,7 @@ namespace Int2Uyg.API.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")] 
+        [Authorize] 
         public async Task<ResultDto> Add(QuestionDto dto)
         {
             var question = _mapper.Map<Question>(dto);
@@ -42,7 +42,7 @@ namespace Int2Uyg.API.Controllers
         }
 
         [HttpPut]
-        [Authorize(Roles = "Admin")] 
+        [Authorize] 
         public async Task<ResultDto> Update(QuestionDto dto)
         {
             var question = _mapper.Map<Question>(dto);
@@ -53,7 +53,7 @@ namespace Int2Uyg.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")] 
+        [Authorize] 
         public async Task<ResultDto> Delete(int id)
         {
             await _questionRepository.DeleteAsync(id);

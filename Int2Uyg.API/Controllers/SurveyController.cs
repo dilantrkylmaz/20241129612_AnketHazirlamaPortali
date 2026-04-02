@@ -38,7 +38,7 @@ namespace Int2Uyg.API.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")] 
+        [Authorize] 
         public async Task<ResultDto> Add(SurveyDto dto)
         {
             bool isExist = await _surveyRepository.Where(s => s.Title == dto.Title).AnyAsync();
@@ -58,7 +58,7 @@ namespace Int2Uyg.API.Controllers
         }
 
         [HttpPut]
-        [Authorize(Roles = "Admin")] 
+        [Authorize] 
         public async Task<ResultDto> Update(SurveyDto dto)
         {
             var survey = _mapper.Map<Survey>(dto);
@@ -69,7 +69,7 @@ namespace Int2Uyg.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         public async Task<ResultDto> Delete(int id)
         {
             await _surveyRepository.DeleteAsync(id);
