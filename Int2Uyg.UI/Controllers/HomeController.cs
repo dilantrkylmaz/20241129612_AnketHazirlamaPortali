@@ -58,5 +58,12 @@ namespace Int2Uyg.UI.Controllers
             ViewBag.ApiBaseUrl = _configuration["ApiBaseUrl"];
             return View();
         }
+
+        [Route("Home/Questions/{id}")]
+        public IActionResult Questions(int id)
+        {
+            ViewBag.SurveyId = id;
+            return View();
+        }
     }
 }

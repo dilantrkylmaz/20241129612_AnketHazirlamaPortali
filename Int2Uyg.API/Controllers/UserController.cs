@@ -54,29 +54,32 @@ namespace Int2Uyg.API.Controllers
         [AllowAnonymous]
         public async Task<ResultDto> Add(RegisterDto dto)
         {
-            var identityResult = await _userManager.CreateAsync(new() { UserName = dto.UserName, Email = dto.Email, FullName = dto.FullName, PhoneNumber = dto.PhoneNumber }, dto.Password);
+            var userToCreate = new AppUser
+            {
+                UserName = dto.UserName,
+                Email = dto.Email,
+                FullName = dto.FullName,
+                PhoneNumber = "0000000000", 
+                PhotoUrl = "undraw_profile.svg" 
+            };
+
+            var identityResult = await _userManager.CreateAsync(userToCreate, dto.Password);
 
             if (!identityResult.Succeeded)
             {
                 result.Status = false;
-                foreach (var item in identityResult.Errors)
-                {
-                    result.Message += "<p>" + item.Description + "</p>";
-                }
+                result.Message = string.Join(" ", identityResult.Errors.Select(e => e.Description));
                 return result;
             }
 
             var user = await _userManager.FindByNameAsync(dto.UserName);
             var roleExist = await _roleManager.RoleExistsAsync("Uye");
-            if (!roleExist)
-            {
-                var role = new AppRole { Name = "Uye" };
-                await _roleManager.CreateAsync(role);
-            }
+            if (!roleExist) { await _roleManager.CreateAsync(new AppRole { Name = "Uye" }); }
 
             await _userManager.AddToRoleAsync(user, "Uye");
+
             result.Status = true;
-            result.Message = "Üye Eklendi";
+            result.Message = "Üye başarıyla oluşturuldu.";
             return result;
         }
 

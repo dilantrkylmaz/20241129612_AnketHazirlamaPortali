@@ -38,7 +38,7 @@ namespace Int2Uyg.API.Controllers
         }
 
         [HttpPost]
-        [Authorize] 
+        [Authorize]
         public async Task<ResultDto> Add(SurveyDto dto)
         {
             bool isExist = await _surveyRepository.Where(s => s.Title == dto.Title).AnyAsync();
@@ -51,6 +51,9 @@ namespace Int2Uyg.API.Controllers
             }
 
             var survey = _mapper.Map<Survey>(dto);
+
+            survey.Category = null;
+
             await _surveyRepository.AddAsync(survey);
             _result.Status = true;
             _result.Message = "Anket Eklendi";
@@ -58,10 +61,13 @@ namespace Int2Uyg.API.Controllers
         }
 
         [HttpPut]
-        [Authorize] 
+        [Authorize]
         public async Task<ResultDto> Update(SurveyDto dto)
         {
             var survey = _mapper.Map<Survey>(dto);
+
+            survey.Category = null;
+
             await _surveyRepository.UpdateAsync(survey);
             _result.Status = true;
             _result.Message = "Anket Güncellendi";

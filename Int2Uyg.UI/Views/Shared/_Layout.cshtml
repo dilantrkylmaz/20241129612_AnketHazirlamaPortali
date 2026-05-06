@@ -167,7 +167,7 @@
 
         $(document).ready(function () {
             var token = localStorage.getItem("token");
-            var apiBaseUrl = "https://localhost:7258/api"; 
+            var apiBaseUrl = "https://localhost:7258/api";
 
             var path = window.location.pathname.toLowerCase();
             if (!token && path !== "/login" && path !== "/register" && path !== "/forgotpassword") {
@@ -180,7 +180,6 @@
                 if (payload) {
                     var rawName = payload["FullName"] || payload["unique_name"] || payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] || "Kullanıcı";
                     $("#userNameSpan").text(toTitleCase(rawName));
-
 
                     var roles = payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
                     var badge = $("#userBadge");
@@ -201,7 +200,13 @@
                             success: function (data) {
                                 var photo = data.photoUrl || data.PhotoUrl;
                                 if (photo) {
-                                    var imgPath = apiBaseUrl.replace("/api", "") + "/Files/UserPhotos/" + photo;
+                                    var imgPath = "";
+                                    // 💡 SENİOR DÜZELTME: Temiz blok ve girintiler
+                                    if (photo.startsWith("undraw")) {
+                                        imgPath = "/sbadmin/img/" + photo;
+                                    } else {
+                                        imgPath = apiBaseUrl.replace("/api", "") + "/Files/UserPhotos/" + photo;
+                                    }
                                     $("#topProfileImage").attr("src", imgPath);
                                 }
                             }

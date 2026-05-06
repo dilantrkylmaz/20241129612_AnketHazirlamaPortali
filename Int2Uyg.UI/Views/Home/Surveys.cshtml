@@ -5,23 +5,22 @@
 <div class="row">
     <div class="col-md-8" id="listDiv">
         <div class="card shadow mb-4">
-            <div class="card-header py-3 bg-primary d-flex flex-row align-items-center justify-content-between">
+            <div class="card-header py-3 bg-primary d-flex justify-content-between">
                 <h6 class="m-0 font-weight-bold text-white"><i class="fas fa-poll mr-2"></i>Sistemdeki Anketler</h6>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-bordered table-hover" id="tbSurveyList" width="100%" cellspacing="0">
+                    <table class="table table-bordered table-hover" id="tbSurveyList">
                         <thead class="bg-light">
                             <tr>
                                 <th style="width: 60px;">Görsel</th>
                                 <th>Anket Başlığı</th>
                                 <th>Kategori</th>
                                 <th>Durum</th>
-                                <th style="width: 180px;">İşlemler</th>
+                                <th style="width: 150px;">İşlemler</th>
                             </tr>
                         </thead>
-                        <tbody>
-                        </tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
@@ -31,54 +30,46 @@
     <div class="col-md-4" id="formDiv">
         <div class="card shadow mb-4 border-left-primary">
             <div class="card-header py-3 bg-white">
-                <h6 class="m-0 font-weight-bold text-primary" id="formTitle">Yeni Anket Oluştur</h6>
+                <h6 class="m-0 font-weight-bold text-primary" id="formTitle">Anket İşlemleri</h6>
             </div>
             <div class="card-body">
                 <form id="frmSurvey">
                     <input type="hidden" id="txtId" />
+                    <input type="hidden" id="hiddenPhotoUrl" />
 
                     <div class="text-center mb-3">
-                        <img src="~/sbadmin/img/undraw_posting_photo.svg" id="surveyPicture" class="img-fluid rounded shadow-sm mb-2" style="height: 120px; object-fit: cover; width: 100%;">
+                        <img src="/sbadmin/img/undraw_posting_photo.svg" id="surveyPicture" class="img-fluid rounded shadow-sm mb-2" style="height: 140px; object-fit: cover; width: 100%; border: 1px solid #ddd;" onerror="this.src='/sbadmin/img/undraw_posting_photo.svg'">
                         <input id="fileInput" type="file" accept="image/*" style="display: none;">
-                        <button type="button" class="btn btn-outline-primary btn-sm btn-block" onclick="$('#fileInput').click();">
-                            <i class="fas fa-camera mr-1"></i> Kapak Görseli Seç
-                        </button>
+                        <div class="btn-group w-100">
+                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="$('#fileInput').click();"><i class="fas fa-camera"></i> Seç</button>
+                            <button type="button" class="btn btn-outline-danger btn-sm" id="btnRemovePicture"><i class="fas fa-trash-alt"></i> Kaldır</button>
+                        </div>
                     </div>
 
                     <div class="form-group">
-                        <label class="font-weight-bold small">Anket Başlığı</label>
-                        <input type="text" class="form-control" id="txtTitle" placeholder="Örn: 2026 Müşteri Memnuniyeti">
+                        <label class="small font-weight-bold">Anket Başlığı</label>
+                        <input type="text" class="form-control" id="txtTitle" placeholder="Örn: Çalışan Memnuniyeti">
                     </div>
 
                     <div class="form-group">
-                        <label class="font-weight-bold small">Kategori Seçin</label>
-                        <select class="form-control" id="cbCategory">
-                            <option value="">Seçiniz...</option>
-                        </select>
+                        <label class="small font-weight-bold">Kategori Seçin</label>
+                        <select class="form-control" id="cbCategory"></select>
                     </div>
 
                     <div class="form-group">
                         <div class="custom-control custom-checkbox small">
                             <input type="checkbox" class="custom-control-input" id="cbIsActive" checked>
-                            <label class="custom-control-label" for="cbIsActive">Anket Yayında mı?</label>
+                            <label class="custom-control-label" for="cbIsActive">Yayında</label>
                         </div>
                     </div>
 
                     <hr>
-                    <button type="button" class="btn btn-primary btn-block shadow-sm font-weight-bold" id="btnSave">
-                        <i class="fa fa-save mr-1"></i> Kaydet
-                    </button>
+                    <button type="button" class="btn btn-primary btn-block shadow-sm" id="btnSave"><b>KAYDET</b></button>
 
                     <div id="editButtons" style="display:none;">
-                        <button type="button" class="btn btn-warning btn-block shadow-sm font-weight-bold" id="btnUpdate">
-                            <i class="fa fa-edit mr-1"></i> Güncelle
-                        </button>
-                        <button type="button" class="btn btn-danger btn-block shadow-sm font-weight-bold" id="btnDelete">
-                            <i class="fa fa-trash mr-1"></i> Sil
-                        </button>
-                        <button type="button" class="btn btn-secondary btn-block shadow-sm font-weight-bold" id="btnCancel">
-                            <i class="fa fa-times mr-1"></i> Vazgeç
-                        </button>
+                        <button type="button" class="btn btn-warning btn-block shadow-sm" id="btnUpdate"><b>GÜNCELLE</b></button>
+                        <button type="button" class="btn btn-danger btn-block shadow-sm" id="btnDelete"><b>SİL</b></button>
+                        <button type="button" class="btn btn-secondary btn-block shadow-sm" id="btnCancel"><b>VAZGEÇ</b></button>
                     </div>
                 </form>
                 <div id="divResult" class="mt-3" style="display:none;"></div>
@@ -90,157 +81,230 @@
 @section Scripts {
     <script>
         $(document).ready(function () {
-            var apiBaseUrl = "@ViewBag.ApiBaseURL";
+            // API Adresini sabitledik
+            var apiBaseUrl = "https://localhost:7258/api";
             var token = localStorage.getItem("token");
             var selectedImageBase64 = "";
 
             if (!token) { window.location.href = "/Login"; return; }
 
+            // Güvenli Token Çözücü
+            function parseJwt(token) {
+                try {
+                    var base64Url = token.split('.')[1];
+                    var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                    var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+                        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                    }).join(''));
+                    return JSON.parse(jsonPayload);
+                } catch (e) { return null; }
+            }
+
+            var payload = parseJwt(token);
+            var currentUserId = payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] || payload["nameid"] || payload["Id"];
+            var roles = payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+            var isAdmin = roles && (roles === "Admin" || roles.includes("Admin"));
+
             GetCategoriesForDropdown();
             GetSurveyList();
 
-            function GetCategoriesForDropdown() {
+            // 📸 PROTOKOL HATASINI BİTİREN SIKIŞTIRMA MOTORU (Her boyutu anında küçültür)
+            $("#fileInput").change(function (e) {
+                var file = e.target.files[0];
+                if (!file) return;
+
+                var reader = new FileReader();
+                reader.onload = function (event) {
+                    var img = new Image();
+                    img.onload = function () {
+                        var canvas = document.createElement('canvas');
+                        var ctx = canvas.getContext('2d');
+                        var MAX = 800; // Genişliği 800px ile sınırlar
+                        var w = img.width, h = img.height;
+
+                        if (w > h) { if (w > MAX) { h *= MAX / w; w = MAX; } } else { if (h > MAX) { w *= MAX / h; h = MAX; } }
+                        canvas.width = w; canvas.height = h;
+                        ctx.drawImage(img, 0, 0, w, h);
+
+                        // %60 kalite ile JPEG'e çevirip sunucuyu rahatlatır
+                        var compressed = canvas.toDataURL('image/jpeg', 0.6);
+                        $('#surveyPicture').attr('src', compressed);
+                        selectedImageBase64 = compressed;
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+
+            // 🗑️ RESMİ KALDIRMA
+            $("#btnRemovePicture").click(function () {
+                $('#surveyPicture').attr('src', '/sbadmin/img/undraw_posting_photo.svg');
+                selectedImageBase64 = "DELETE";
+            });
+
+            // 🟢 EKLEME İŞLEMİ
+            $("#btnSave").click(function () {
+                var title = $("#txtTitle").val();
+                var catId = $("#cbCategory").val();
+                if (!title || !catId) { showResult("Başlık ve Kategori zorunludur!", "danger"); return; }
+
+                var survey = {
+                    title: title,
+                    description: " ", // 400 Hatasını önleyen sihirli boşluk
+                    categoryId: parseInt(catId),
+                    isActive: $("#cbIsActive").is(":checked"),
+                    photoUrl: selectedImageBase64 === "DELETE" ? null : (selectedImageBase64 || null),
+                    userId: currentUserId
+                };
+
                 $.ajax({
-                    url: apiBaseUrl + "/Category",
-                    type: "GET",
+                    url: apiBaseUrl + "/Survey/Add",
+                    type: "POST",
                     headers: { "Authorization": "Bearer " + token },
-                    success: function (data) {
-                        $("#cbCategory").empty().append('<option value="">Seçiniz...</option>');
-                        $.each(data, function (i, item) {
-                            if (item.isActive) {
-                                $("#cbCategory").append('<option value="' + item.id + '">' + toTitleCase(item.name) + '</option>');
-                            }
-                        });
+                    contentType: "application/json",
+                    data: JSON.stringify(survey),
+                    success: function (d) {
+                        if (d.status || d.Status) {
+                            ResetForm(); GetSurveyList(); showResult("Anket Eklendi", "success");
+                        } else {
+                            showResult(d.message || "Eklenemedi", "danger");
+                        }
                     }
                 });
-            }
+            });
 
+            // 🟠 GÜNCELLEME İŞLEMİ
+            $("#btnUpdate").click(function () {
+                var title = $("#txtTitle").val();
+                var catId = $("#cbCategory").val();
+                if (!title || !catId) { showResult("Başlık ve Kategori zorunludur!", "danger"); return; }
+
+                var photoValue = selectedImageBase64 === "DELETE" ? null : (selectedImageBase64 !== "" ? selectedImageBase64 : $("#hiddenPhotoUrl").val());
+
+                var surveyData = {
+                    id: parseInt($("#txtId").val()),
+                    title: title,
+                    description: " ", // 500 hatasını önler
+                    categoryId: parseInt(catId),
+                    isActive: $("#cbIsActive").is(":checked"),
+                    userId: currentUserId,
+                    photoUrl: photoValue
+                };
+
+                $.ajax({
+                    url: apiBaseUrl + "/Survey/Update",
+                    type: "PUT",
+                    headers: { "Authorization": "Bearer " + token },
+                    contentType: "application/json",
+                    data: JSON.stringify(surveyData),
+                    success: function (d) {
+                        if (d.status || d.Status) {
+                            showResult("Güncellendi!", "success"); ResetForm(); GetSurveyList();
+                        } else {
+                            showResult(d.message || "Güncellenemedi", "danger");
+                        }
+                    },
+                    error: function() { showResult("Bağlantı Hatası!", "danger"); }
+                });
+            });
+
+            // 📋 LİSTELEME VE YETKİ KONTROLÜ
             function GetSurveyList() {
                 $.ajax({
-                    url: apiBaseUrl + "/Survey",
+                    url: apiBaseUrl + "/Survey/List",
                     type: "GET",
                     headers: { "Authorization": "Bearer " + token },
                     success: function (data) {
-                        var payload = parseJwt(token);
-                        var currentUserId = payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] || payload["nameid"] || payload["Id"];
-                        var roles = payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
-                        var isAdmin = roles && (roles === "Admin" || roles.includes("Admin"));
-
-                        var row = "";
-                        $("#tbSurveyList tbody").empty();
-
+                        var row = ""; $("#tbSurveyList tbody").empty();
                         $.each(data, function (i, item) {
-                            var statusBadge = item.isActive ? '<span class="badge badge-success">Yayında</span>' : '<span class="badge badge-danger">Kapalı</span>';
-                            var catName = item.category ? toTitleCase(item.category.name) : "Kategori Yok";
-                            var imgUrl = item.photoUrl ? (apiBaseUrl.replace("/api", "") + "/Files/Surveys/" + item.photoUrl) : "/sbadmin/img/undraw_posting_photo.svg";
+                            if (!item.title) return;
+                            var imgPath = item.photoUrl ? (apiBaseUrl.replace("/api", "") + "/Files/Surveys/" + item.photoUrl) : "/sbadmin/img/undraw_posting_photo.svg";
 
-                            row += "<tr>";
-                            row += '<td><img src="' + imgUrl + '" class="rounded shadow-sm" style="width: 50px; height: 50px; object-fit: cover;"></td>';
-                            row += '<td class="font-weight-bold text-dark">' + toTitleCase(item.name) + '</td>';
-                            row += "<td>" + catName + "</td>";
-                            row += "<td>" + statusBadge + "</td>";
-
-                            row += '<td>';
+                            row += `<tr>
+                                <td><img src="${imgPath}" onerror="this.src='/sbadmin/img/undraw_posting_photo.svg'" class="rounded shadow-sm" style="width: 50px; height: 50px; object-fit: cover;"></td>
+                                <td class="font-weight-bold text-dark">${toTitleCase(item.title)}</td>
+                                <td>${item.categoryName || "Genel"}</td>
+                                <td>${item.isActive ? '<span class="badge badge-success">Yayında</span>' : '<span class="badge badge-danger">Kapalı</span>'}</td>
+                                <td>`;
 
                             var ownerId = item.appUserId || item.userId;
-                            var isMySurvey = (ownerId === currentUserId);
 
-                            if (isAdmin || isMySurvey) {
-                                row += '<button class="btn btn-info btn-sm btnEdit mr-1" data-id="' + item.id + '" title="Düzenle"><i class="fa fa-edit"></i></button>';
-                                row += '<a href="/Home/Questions/' + item.id + '" class="btn btn-primary btn-sm shadow-sm"><i class="fa fa-list mr-1"></i>Sorular</a>';
+                            // Ceren İçin "Katıl" Butonu, Admin/Sahip için "Düzenle/Sorular" Butonu
+                            if (isAdmin || ownerId == currentUserId) {
+                                row += `<button class="btn btn-info btn-sm btnEdit mr-1" data-id="${item.id}"><i class="fa fa-edit"></i></button>
+                                        <a href="/Home/Questions/${item.id}" class="btn btn-primary btn-sm"><i class="fa fa-list"></i></a>`;
                             } else {
-                                row += '<a href="/Home/TakeSurvey/' + item.id + '" class="btn btn-success btn-sm shadow-sm"><i class="fa fa-pen mr-1"></i>Katıl</a>';
+                                row += `<a href="/Home/TakeSurvey/${item.id}" class="btn btn-success btn-sm"><i class="fa fa-pen"></i> Katıl</a>`;
                             }
-
-                            row += '</td>';
-                            row += "</tr>";
+                            row += `</td></tr>`;
                         });
                         $("#tbSurveyList tbody").append(row);
                     }
                 });
             }
 
-            $("#fileInput").change(function () {
-                var file = this.files[0];
-                if (file) {
-                    var reader = new FileReader();
-                    reader.onload = function (e) {
-                        $('#surveyPicture').attr('src', e.target.result);
-                        selectedImageBase64 = e.target.result;
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
-
-            $("#btnSave").click(function () {
-                var title = $("#txtTitle").val();
-                var catId = $("#cbCategory").val();
-
-                if (!title || !catId) { showResult("Başlık ve Kategori zorunludur!", "danger"); return; }
-
-                var surveyData = {
-                    name: title,
-                    categoryId: catId,
-                    isActive: $("#cbIsActive").is(":checked"),
-                    photoData: selectedImageBase64 !== "" ? selectedImageBase64 : null
-                };
-
+            function GetCategoriesForDropdown() {
                 $.ajax({
-                    url: apiBaseUrl + "/Survey",
-                    type: "POST",
-                    contentType: "application/json",
+                    url: apiBaseUrl + "/Category/List",
+                    type: "GET",
                     headers: { "Authorization": "Bearer " + token },
-                    data: JSON.stringify(surveyData),
-                    success: function (d) {
-                        if (d.status) {
-                            showResult("Anket başarıyla oluşturuldu!", "success");
-                            ResetForm();
-                            GetSurveyList();
-                        } else {
-                            showResult(d.message, "danger");
-                        }
+                    success: function (data) {
+                        var dropdown = $("#cbCategory").empty().append('<option value="">Seçiniz...</option>');
+                        $.each(data, function (i, item) {
+                            if (item.isActive) dropdown.append('<option value="' + item.id + '">' + toTitleCase(item.name) + '</option>');
+                        });
                     }
                 });
-            });
+            }
 
+            // ✏️ DÜZENLEME SEÇİMİ
             $(document).on("click", ".btnEdit", function () {
-                var id = $(this).data("id");
                 $.ajax({
-                    url: apiBaseUrl + "/Survey/" + id,
+                    url: apiBaseUrl + "/Survey/GetById/" + $(this).data("id"),
                     type: "GET",
                     headers: { "Authorization": "Bearer " + token },
                     success: function (d) {
-                        $("#txtId").val(d.id);
-                        $("#txtTitle").val(d.name);
-                        $("#cbCategory").val(d.categoryId);
-                        $("#cbIsActive").prop("checked", d.isActive);
+                        $("#txtId").val(d.id || d.Id);
+                        $("#txtTitle").val(d.title || d.Title);
+                        $("#cbCategory").val(d.categoryId || d.CategoryId);
+                        $("#cbIsActive").prop("checked", d.isActive !== undefined ? d.isActive : d.IsActive);
+                        $("#hiddenPhotoUrl").val(d.photoUrl || d.PhotoUrl);
 
-                        if(d.photoUrl) {
-                            $('#surveyPicture').attr('src', apiBaseUrl.replace("/api", "") + "/Files/Surveys/" + d.photoUrl);
-                        } else {
-                            $('#surveyPicture').attr('src', '/sbadmin/img/undraw_posting_photo.svg');
-                        }
+                        var photo = d.photoUrl || d.PhotoUrl;
+                        var imgPath = photo ? (apiBaseUrl.replace("/api", "") + "/Files/Surveys/" + photo) : "/sbadmin/img/undraw_posting_photo.svg";
+                        $('#surveyPicture').attr('src', imgPath);
 
-                        $("#btnSave").hide();
-                        $("#editButtons").show();
-                        $("#formTitle").text("Anketi Düzenle");
+                        $("#btnSave").hide(); $("#editButtons").show(); $("#formTitle").text("Anketi Düzenle");
                     }
                 });
             });
 
+            // 🔴 SİLME İŞLEMİ
+            $(document).on("click", "#btnDelete", function () {
+                if (confirm("Bu anketi tamamen silmek istediğinize emin misiniz?")) {
+                    $.ajax({
+                        url: apiBaseUrl + "/Survey/Delete/" + $("#txtId").val(),
+                        type: "DELETE",
+                        headers: { "Authorization": "Bearer " + token },
+                        success: function (d) {
+                            if (d.status || d.Status) {
+                                showResult("Anket silindi!", "success"); ResetForm(); GetSurveyList();
+                            }
+                        }
+                    });
+                }
+            });
+
             function ResetForm() {
-                $("#frmSurvey")[0].reset();
-                $('#surveyPicture').attr('src', '/sbadmin/img/undraw_posting_photo.svg');
-                selectedImageBase64 = "";
-                $("#btnSave").show();
-                $("#editButtons").hide();
-                $("#formTitle").text("Yeni Anket Oluştur");
+                $("#frmSurvey")[0].reset(); $("#txtId").val(""); $("#hiddenPhotoUrl").val("");
+                $('#surveyPicture').attr('src', '/sbadmin/img/undraw_posting_photo.svg'); selectedImageBase64 = "";
+                $("#btnSave").show(); $("#editButtons").hide(); $("#formTitle").text("Yeni Anket Oluştur");
             }
 
             $("#btnCancel").click(function () { ResetForm(); });
 
-            function showResult(message, type) {
-                $("#divResult").fadeIn().removeClass().addClass("alert alert-" + type).html(message).fadeOut(5000);
+            function showResult(m, t) {
+                $("#divResult").stop(true,true).hide().removeClass().addClass("alert alert-" + t).html(m).fadeIn().fadeOut(4000);
             }
 
             function toTitleCase(str) {

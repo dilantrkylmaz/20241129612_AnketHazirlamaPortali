@@ -4,12 +4,13 @@ using Int2Uyg.API.Models;
 using Int2Uyg.API.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Int2Uyg.API.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
-    [Authorize] 
+    [Authorize]
     public class QuestionOptionController : ControllerBase
     {
         private readonly QuestionOptionRepository _optionRepository;
@@ -22,19 +23,28 @@ namespace Int2Uyg.API.Controllers
             _mapper = mapper;
         }
 
-
         [HttpGet("{questionId}")]
         public async Task<List<QuestionOptionDto>> GetOptionsByQuestionId(int questionId)
         {
-            var options = await _optionRepository.GetAllAsync();
-            var filteredOptions = options.Where(o => o.QuestionId == questionId).ToList();
+            var filteredOptions = await _optionRepository.Where(o => o.QuestionId == questionId).ToListAsync();
             return _mapper.Map<List<QuestionOptionDto>>(filteredOptions);
         }
 
         [HttpPost]
         public async Task<ResultDto> Add(QuestionOptionDto dto)
         {
+            if (string.IsNullOrWhiteSpace(dto.OptionText))
+            {
+                _result.Status = false;
+                _result.Message = "Seçenek metni boş olamaz!";
+                return _result;
+            }
+
             var option = _mapper.Map<QuestionOption>(dto);
+
+
+            option.Question = null;
+
             await _optionRepository.AddAsync(option);
             _result.Status = true;
             _result.Message = "Seçenek eklendi.";
@@ -45,6 +55,8 @@ namespace Int2Uyg.API.Controllers
         public async Task<ResultDto> Update(QuestionOptionDto dto)
         {
             var option = _mapper.Map<QuestionOption>(dto);
+            option.Question = null;
+
             await _optionRepository.UpdateAsync(option);
             _result.Status = true;
             _result.Message = "Seçenek güncellendi.";

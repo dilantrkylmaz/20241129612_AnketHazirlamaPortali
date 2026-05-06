@@ -4,6 +4,7 @@ using Int2Uyg.API.Models;
 using Int2Uyg.API.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Int2Uyg.API.Controllers
 {
@@ -29,20 +30,21 @@ namespace Int2Uyg.API.Controllers
             return _mapper.Map<List<QuestionDto>>(questions);
         }
 
-
         [HttpGet("{surveyId}")]
         public async Task<List<QuestionDto>> GetQuestionsBySurveyId(int surveyId)
         {
-            var questions = await _questionRepository.GetAllAsync();
-            var filteredQuestions = questions.Where(q => q.SurveyId == surveyId).ToList();
+            var filteredQuestions = await _questionRepository.Where(q => q.SurveyId == surveyId).ToListAsync();
             return _mapper.Map<List<QuestionDto>>(filteredQuestions);
         }
 
         [HttpPost]
-        [Authorize] 
+        [Authorize]
         public async Task<ResultDto> Add(QuestionDto dto)
         {
             var question = _mapper.Map<Question>(dto);
+
+            question.Survey = null;
+
             await _questionRepository.AddAsync(question);
             _result.Status = true;
             _result.Message = "Soru Başarıyla Eklendi";
@@ -50,10 +52,13 @@ namespace Int2Uyg.API.Controllers
         }
 
         [HttpPut]
-        [Authorize] 
+        [Authorize]
         public async Task<ResultDto> Update(QuestionDto dto)
         {
             var question = _mapper.Map<Question>(dto);
+
+            question.Survey = null;
+
             await _questionRepository.UpdateAsync(question);
             _result.Status = true;
             _result.Message = "Soru Güncellendi";
@@ -61,7 +66,7 @@ namespace Int2Uyg.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize] 
+        [Authorize]
         public async Task<ResultDto> Delete(int id)
         {
             await _questionRepository.DeleteAsync(id);
