@@ -15,12 +15,14 @@ namespace Int2Uyg.API.Controllers
     {
         private readonly SurveyRepository _surveyRepository;
         private readonly IMapper _mapper;
+        private readonly IWebHostEnvironment _env;
         ResultDto _result = new ResultDto();
 
-        public SurveyController(SurveyRepository surveyRepository, IMapper mapper)
+        public SurveyController(SurveyRepository surveyRepository, IMapper mapper, IWebHostEnvironment env)
         {
             _surveyRepository = surveyRepository;
             _mapper = mapper;
+            _env = env;
         }
 
         [HttpGet]
@@ -41,19 +43,19 @@ namespace Int2Uyg.API.Controllers
         [Authorize]
         public async Task<ResultDto> Add(SurveyDto dto)
         {
-            bool isExist = await _surveyRepository.Where(s => s.Title == dto.Title).AnyAsync();
-
-            if (isExist)
-            {
-                _result.Status = false;
-                _result.Message = "Bu başlıkta bir anket zaten var!";
-                return _result;
-            }
-
             var survey = _mapper.Map<Survey>(dto);
 
-            survey.Category = null;
+            // 📸 RESİM İŞLEME VE 400 HATASI KORUMASI
+            if (!string.IsNullOrEmpty(dto.PhotoUrl) && dto.PhotoUrl.Contains("base64"))
+            {
+                survey.PhotoUrl = SaveImage(dto.PhotoUrl);
+            }
+            else
+            {
+                survey.PhotoUrl = null; // "NO_IMAGE" gelirse boş kaydet ki hata vermesin
+            }
 
+            survey.Category = null;
             await _surveyRepository.AddAsync(survey);
             _result.Status = true;
             _result.Message = "Anket Eklendi";
@@ -64,14 +66,57 @@ namespace Int2Uyg.API.Controllers
         [Authorize]
         public async Task<ResultDto> Update(SurveyDto dto)
         {
+            // 🛡️ EF Core Çakışma ve İzleme Hatasını Önleyen Kod
+            var existSurvey = await _surveyRepository.Where(s => s.Id == dto.Id).AsNoTracking().FirstOrDefaultAsync();
+
+            if (existSurvey == null)
+            {
+                _result.Status = false;
+                _result.Message = "Anket bulunamadı";
+                return _result;
+            }
+
             var survey = _mapper.Map<Survey>(dto);
 
-            survey.Category = null;
+            if (dto.PhotoUrl == "DELETE")
+            {
+                survey.PhotoUrl = null;
+            }
+            else if (!string.IsNullOrEmpty(dto.PhotoUrl) && dto.PhotoUrl.Contains("base64"))
+            {
+                survey.PhotoUrl = SaveImage(dto.PhotoUrl);
+            }
+            else
+            {
+                survey.PhotoUrl = existSurvey.PhotoUrl; // Resim değişmediyse eskiyi koru
+            }
 
+            survey.Category = null;
             await _surveyRepository.UpdateAsync(survey);
+
             _result.Status = true;
             _result.Message = "Anket Güncellendi";
             return _result;
+        }
+
+        private string SaveImage(string base64String)
+        {
+            try
+            {
+                // wwwroot klasörünü garantili olarak bulur
+                string folder = Path.Combine(_env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"), "Files", "Surveys");
+                if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+
+                string fileName = Guid.NewGuid().ToString() + ".jpg";
+                string fullPath = Path.Combine(folder, fileName);
+
+                var base64Data = base64String.Substring(base64String.IndexOf(",") + 1);
+                byte[] imageBytes = Convert.FromBase64String(base64Data);
+                System.IO.File.WriteAllBytes(fullPath, imageBytes);
+
+                return fileName;
+            }
+            catch { return null; }
         }
 
         [HttpDelete("{id}")]

@@ -39,7 +39,9 @@
 
                     <div class="text-center mb-3">
                         <img src="/sbadmin/img/undraw_posting_photo.svg" id="surveyPicture" class="img-fluid rounded shadow-sm mb-2" style="height: 140px; object-fit: cover; width: 100%; border: 1px solid #ddd;" onerror="this.src='/sbadmin/img/undraw_posting_photo.svg'">
-                        <input id="fileInput" type="file" accept="image/*" style="display: none;">
+
+                        <input id="fileInput" type="file" accept=".jpg, .jpeg, .png, .gif, .webp, image/*" style="display: none;">
+
                         <div class="btn-group w-100">
                             <button type="button" class="btn btn-outline-primary btn-sm" onclick="$('#fileInput').click();"><i class="fas fa-camera"></i> Seç</button>
                             <button type="button" class="btn btn-outline-danger btn-sm" id="btnRemovePicture"><i class="fas fa-trash-alt"></i> Kaldır</button>
@@ -81,22 +83,19 @@
 @section Scripts {
     <script>
         $(document).ready(function () {
-            // API Adresini sabitledik
             var apiBaseUrl = "https://localhost:7258/api";
             var token = localStorage.getItem("token");
             var selectedImageBase64 = "";
 
             if (!token) { window.location.href = "/Login"; return; }
 
-            // Güvenli Token Çözücü
             function parseJwt(token) {
                 try {
                     var base64Url = token.split('.')[1];
                     var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                    var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+                    return JSON.parse(decodeURIComponent(window.atob(base64).split('').map(function(c) {
                         return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-                    }).join(''));
-                    return JSON.parse(jsonPayload);
+                    }).join('')));
                 } catch (e) { return null; }
             }
 
@@ -108,107 +107,38 @@
             GetCategoriesForDropdown();
             GetSurveyList();
 
-            // 📸 PROTOKOL HATASINI BİTİREN SIKIŞTIRMA MOTORU (Her boyutu anında küçültür)
             $("#fileInput").change(function (e) {
                 var file = e.target.files[0];
                 if (!file) return;
 
                 var reader = new FileReader();
                 reader.onload = function (event) {
+                    $('#surveyPicture').attr('src', event.target.result);
                     var img = new Image();
                     img.onload = function () {
                         var canvas = document.createElement('canvas');
                         var ctx = canvas.getContext('2d');
-                        var MAX = 800; // Genişliği 800px ile sınırlar
+                        var MAX = 800;
                         var w = img.width, h = img.height;
-
-                        if (w > h) { if (w > MAX) { h *= MAX / w; w = MAX; } } else { if (h > MAX) { w *= MAX / h; h = MAX; } }
+                        if (w > h) { if (w > MAX) { h *= MAX / w; w = MAX; } }
+                        else { if (h > MAX) { w *= MAX / h; h = MAX; } }
                         canvas.width = w; canvas.height = h;
                         ctx.drawImage(img, 0, 0, w, h);
-
-                        // %60 kalite ile JPEG'e çevirip sunucuyu rahatlatır
-                        var compressed = canvas.toDataURL('image/jpeg', 0.6);
-                        $('#surveyPicture').attr('src', compressed);
-                        selectedImageBase64 = compressed;
+                        selectedImageBase64 = canvas.toDataURL('image/jpeg', 0.6);
                     };
                     img.src = event.target.result;
                 };
                 reader.readAsDataURL(file);
             });
 
-            // 🗑️ RESMİ KALDIRMA
             $("#btnRemovePicture").click(function () {
-                $('#surveyPicture').attr('src', '/sbadmin/img/undraw_posting_photo.svg');
-                selectedImageBase64 = "DELETE";
+                if(confirm("Anket resmini kaldırmak istediğinize emin misiniz?")) {
+                    $('#surveyPicture').attr('src', '/sbadmin/img/undraw_posting_photo.svg');
+                    selectedImageBase64 = "DELETE";
+                    $("#fileInput").val("");
+                }
             });
 
-            // 🟢 EKLEME İŞLEMİ
-            $("#btnSave").click(function () {
-                var title = $("#txtTitle").val();
-                var catId = $("#cbCategory").val();
-                if (!title || !catId) { showResult("Başlık ve Kategori zorunludur!", "danger"); return; }
-
-                var survey = {
-                    title: title,
-                    description: " ", // 400 Hatasını önleyen sihirli boşluk
-                    categoryId: parseInt(catId),
-                    isActive: $("#cbIsActive").is(":checked"),
-                    photoUrl: selectedImageBase64 === "DELETE" ? null : (selectedImageBase64 || null),
-                    userId: currentUserId
-                };
-
-                $.ajax({
-                    url: apiBaseUrl + "/Survey/Add",
-                    type: "POST",
-                    headers: { "Authorization": "Bearer " + token },
-                    contentType: "application/json",
-                    data: JSON.stringify(survey),
-                    success: function (d) {
-                        if (d.status || d.Status) {
-                            ResetForm(); GetSurveyList(); showResult("Anket Eklendi", "success");
-                        } else {
-                            showResult(d.message || "Eklenemedi", "danger");
-                        }
-                    }
-                });
-            });
-
-            // 🟠 GÜNCELLEME İŞLEMİ
-            $("#btnUpdate").click(function () {
-                var title = $("#txtTitle").val();
-                var catId = $("#cbCategory").val();
-                if (!title || !catId) { showResult("Başlık ve Kategori zorunludur!", "danger"); return; }
-
-                var photoValue = selectedImageBase64 === "DELETE" ? null : (selectedImageBase64 !== "" ? selectedImageBase64 : $("#hiddenPhotoUrl").val());
-
-                var surveyData = {
-                    id: parseInt($("#txtId").val()),
-                    title: title,
-                    description: " ", // 500 hatasını önler
-                    categoryId: parseInt(catId),
-                    isActive: $("#cbIsActive").is(":checked"),
-                    userId: currentUserId,
-                    photoUrl: photoValue
-                };
-
-                $.ajax({
-                    url: apiBaseUrl + "/Survey/Update",
-                    type: "PUT",
-                    headers: { "Authorization": "Bearer " + token },
-                    contentType: "application/json",
-                    data: JSON.stringify(surveyData),
-                    success: function (d) {
-                        if (d.status || d.Status) {
-                            showResult("Güncellendi!", "success"); ResetForm(); GetSurveyList();
-                        } else {
-                            showResult(d.message || "Güncellenemedi", "danger");
-                        }
-                    },
-                    error: function() { showResult("Bağlantı Hatası!", "danger"); }
-                });
-            });
-
-            // 📋 LİSTELEME VE YETKİ KONTROLÜ
             function GetSurveyList() {
                 $.ajax({
                     url: apiBaseUrl + "/Survey/List",
@@ -217,31 +147,156 @@
                     success: function (data) {
                         var row = ""; $("#tbSurveyList tbody").empty();
                         $.each(data, function (i, item) {
-                            if (!item.title) return;
-                            var imgPath = item.photoUrl ? (apiBaseUrl.replace("/api", "") + "/Files/Surveys/" + item.photoUrl) : "/sbadmin/img/undraw_posting_photo.svg";
+                            var sTitle = item.title || item.Title;
+                            if (!sTitle) return;
 
-                            row += `<tr>
-                                <td><img src="${imgPath}" onerror="this.src='/sbadmin/img/undraw_posting_photo.svg'" class="rounded shadow-sm" style="width: 50px; height: 50px; object-fit: cover;"></td>
-                                <td class="font-weight-bold text-dark">${toTitleCase(item.title)}</td>
-                                <td>${item.categoryName || "Genel"}</td>
-                                <td>${item.isActive ? '<span class="badge badge-success">Yayında</span>' : '<span class="badge badge-danger">Kapalı</span>'}</td>
-                                <td>`;
+                            var photoUrl = item.photoUrl || item.PhotoUrl;
 
-                            var ownerId = item.appUserId || item.userId;
+                            var imgPath = (photoUrl && photoUrl !== "NO_IMAGE" && photoUrl !== "DELETE") ?
+                                (apiBaseUrl.replace("/api", "") + "/Files/Surveys/" + photoUrl) : "/sbadmin/img/undraw_posting_photo.svg";
 
-                            // Ceren İçin "Katıl" Butonu, Admin/Sahip için "Düzenle/Sorular" Butonu
+                            // 🛡️ DÜZELTME 1: "Kapalı" yazısı "Pasif" olarak değiştirildi
+                            var statusBadge = (item.isActive || item.IsActive) ? '<span class="badge badge-success">Yayında</span>' : '<span class="badge badge-danger">Pasif</span>';
+                            var catName = item.categoryName || item.CategoryName || "Genel";
+
+                            row += '<tr>' +
+                                '<td><img src="' + imgPath + '" onerror="this.src=\'/sbadmin/img/undraw_posting_photo.svg\'" class="rounded shadow-sm" style="width: 50px; height: 50px; object-fit: cover;"></td>' +
+                                '<td class="font-weight-bold text-dark">' + toTitleCase(sTitle) + '</td>' +
+                                '<td>' + catName + '</td>' +
+                                '<td>' + statusBadge + '</td>' +
+                                '<td>';
+
+                            var ownerId = item.appUserId || item.userId || item.AppUserId || item.UserId;
                             if (isAdmin || ownerId == currentUserId) {
-                                row += `<button class="btn btn-info btn-sm btnEdit mr-1" data-id="${item.id}"><i class="fa fa-edit"></i></button>
-                                        <a href="/Home/Questions/${item.id}" class="btn btn-primary btn-sm"><i class="fa fa-list"></i></a>`;
+                                row += '<button class="btn btn-info btn-sm btnEdit mr-1" data-id="' + (item.id || item.Id) + '"><i class="fa fa-edit"></i></button>' +
+                                       '<a href="/Home/Questions/' + (item.id || item.Id) + '" class="btn btn-primary btn-sm"><i class="fa fa-list"></i></a>';
                             } else {
-                                row += `<a href="/Home/TakeSurvey/${item.id}" class="btn btn-success btn-sm"><i class="fa fa-pen"></i> Katıl</a>`;
+                                row += '<a href="/Home/TakeSurvey/' + (item.id || item.Id) + '" class="btn btn-success btn-sm"><i class="fa fa-pen"></i> Katıl</a>';
                             }
-                            row += `</td></tr>`;
+                            row += '</td></tr>';
                         });
                         $("#tbSurveyList tbody").append(row);
                     }
                 });
             }
+
+            // 🟢 KAYDET
+            $("#btnSave").click(function () {
+                var title = $("#txtTitle").val();
+                var catId = $("#cbCategory").val();
+
+                // 🛡️ DÜZELTME 2: Boş alan uyarısı ekranda belirgin hale getirildi
+                if (!title || title.trim() === "" || !catId) {
+                    alert("⚠️ Uyarı: Lütfen Anket Başlığı ve Kategori alanlarını eksiksiz doldurunuz!");
+                    showResult("Eksik alanları doldurunuz!", "warning");
+                    return;
+                }
+
+                var surveyData = {
+                    Title: title,
+                    Description: "Belirtilmedi",
+                    CategoryId: parseInt(catId),
+                    IsActive: $("#cbIsActive").is(":checked"),
+                    PhotoUrl: selectedImageBase64 || "NO_IMAGE",
+                    UserId: currentUserId || "system"
+                };
+
+                $.ajax({
+                    url: apiBaseUrl + "/Survey/Add",
+                    type: "POST",
+                    contentType: "application/json",
+                    headers: { "Authorization": "Bearer " + token },
+                    data: JSON.stringify(surveyData),
+                    success: function (res) {
+                        if (res.status || res.Status) {
+                            showResult("Anket başarıyla eklendi!", "success");
+                            ResetForm();
+                            GetSurveyList();
+                        } else { showResult(res.message || res.Message, "danger"); }
+                    },
+                    error: function(xhr) { showResult("Sunucu Hatası: " + xhr.status, "danger"); }
+                });
+            });
+
+            // 🟠 GÜNCELLE
+            $("#btnUpdate").click(function () {
+                var title = $("#txtTitle").val();
+                var catId = $("#cbCategory").val();
+
+                // 🛡️ DÜZELTME 2: Boş alan uyarısı güncelleme butonuna da eklendi
+                if (!title || title.trim() === "" || !catId) {
+                    alert("⚠️ Uyarı: Lütfen Anket Başlığı ve Kategori alanlarını eksiksiz doldurunuz!");
+                    showResult("Eksik alanları doldurunuz!", "warning");
+                    return;
+                }
+
+                var surveyData = {
+                    Id: parseInt($("#txtId").val()),
+                    Title: title,
+                    Description: "Belirtilmedi",
+                    CategoryId: parseInt(catId),
+                    IsActive: $("#cbIsActive").is(":checked"),
+                    PhotoUrl: selectedImageBase64 || "NO_IMAGE",
+                    UserId: currentUserId || "system"
+                };
+
+                $.ajax({
+                    url: apiBaseUrl + "/Survey/Update",
+                    type: "PUT",
+                    contentType: "application/json",
+                    headers: { "Authorization": "Bearer " + token },
+                    data: JSON.stringify(surveyData),
+                    success: function (res) {
+                        if (res.status || res.Status) {
+                            showResult("Anket başarıyla güncellendi!", "success");
+                            ResetForm();
+                            GetSurveyList();
+                        } else { showResult(res.message || res.Message, "danger"); }
+                    }
+                });
+            });
+
+            $(document).on("click", ".btnEdit", function () {
+                var id = $(this).data("id");
+                $.ajax({
+                    url: apiBaseUrl + "/Survey/GetById/" + id,
+                    type: "GET",
+                    headers: { "Authorization": "Bearer " + token },
+                    success: function (d) {
+                        $("#txtId").val(d.id || d.Id);
+                        $("#txtTitle").val(d.title || d.Title);
+                        $("#cbCategory").val(d.categoryId || d.CategoryId);
+                        $("#cbIsActive").prop("checked", d.isActive !== undefined ? d.isActive : d.IsActive);
+
+                        var photo = d.photoUrl || d.PhotoUrl;
+                        $("#hiddenPhotoUrl").val(photo);
+
+                        var imgPath = (photo && photo !== "NO_IMAGE") ? (apiBaseUrl.replace("/api", "") + "/Files/Surveys/" + photo) : "/sbadmin/img/undraw_posting_photo.svg";
+                        $('#surveyPicture').attr('src', imgPath);
+
+                        $("#btnSave").hide(); $("#editButtons").show(); $("#formTitle").text("Anketi Düzenle");
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                });
+            });
+
+            $(document).on("click", "#btnDelete", function () {
+                var id = $("#txtId").val();
+                if (confirm("Bu anketi tamamen silmek istediğinize emin misiniz?")) {
+                    $.ajax({
+                        url: apiBaseUrl + "/Survey/Delete/" + id,
+                        type: "DELETE",
+                        headers: { "Authorization": "Bearer " + token },
+                        success: function (d) {
+                            if (d.status || d.Status) {
+                                showResult("Anket silindi!", "success");
+                                ResetForm();
+                                GetSurveyList();
+                            }
+                        }
+                    });
+                }
+            });
 
             function GetCategoriesForDropdown() {
                 $.ajax({
@@ -251,49 +306,11 @@
                     success: function (data) {
                         var dropdown = $("#cbCategory").empty().append('<option value="">Seçiniz...</option>');
                         $.each(data, function (i, item) {
-                            if (item.isActive) dropdown.append('<option value="' + item.id + '">' + toTitleCase(item.name) + '</option>');
+                            if (item.isActive || item.IsActive) dropdown.append('<option value="' + (item.id || item.Id) + '">' + toTitleCase(item.name || item.Name) + '</option>');
                         });
                     }
                 });
             }
-
-            // ✏️ DÜZENLEME SEÇİMİ
-            $(document).on("click", ".btnEdit", function () {
-                $.ajax({
-                    url: apiBaseUrl + "/Survey/GetById/" + $(this).data("id"),
-                    type: "GET",
-                    headers: { "Authorization": "Bearer " + token },
-                    success: function (d) {
-                        $("#txtId").val(d.id || d.Id);
-                        $("#txtTitle").val(d.title || d.Title);
-                        $("#cbCategory").val(d.categoryId || d.CategoryId);
-                        $("#cbIsActive").prop("checked", d.isActive !== undefined ? d.isActive : d.IsActive);
-                        $("#hiddenPhotoUrl").val(d.photoUrl || d.PhotoUrl);
-
-                        var photo = d.photoUrl || d.PhotoUrl;
-                        var imgPath = photo ? (apiBaseUrl.replace("/api", "") + "/Files/Surveys/" + photo) : "/sbadmin/img/undraw_posting_photo.svg";
-                        $('#surveyPicture').attr('src', imgPath);
-
-                        $("#btnSave").hide(); $("#editButtons").show(); $("#formTitle").text("Anketi Düzenle");
-                    }
-                });
-            });
-
-            // 🔴 SİLME İŞLEMİ
-            $(document).on("click", "#btnDelete", function () {
-                if (confirm("Bu anketi tamamen silmek istediğinize emin misiniz?")) {
-                    $.ajax({
-                        url: apiBaseUrl + "/Survey/Delete/" + $("#txtId").val(),
-                        type: "DELETE",
-                        headers: { "Authorization": "Bearer " + token },
-                        success: function (d) {
-                            if (d.status || d.Status) {
-                                showResult("Anket silindi!", "success"); ResetForm(); GetSurveyList();
-                            }
-                        }
-                    });
-                }
-            });
 
             function ResetForm() {
                 $("#frmSurvey")[0].reset(); $("#txtId").val(""); $("#hiddenPhotoUrl").val("");

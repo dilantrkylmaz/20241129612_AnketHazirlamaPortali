@@ -49,12 +49,20 @@
                 </div>
                 <div class="card-body text-center">
                     <img src="/sbadmin/img/undraw_profile.svg" id="userPicture" class="img-profile rounded-circle mb-3 shadow" style="width:180px; height:180px; object-fit: cover; border: 4px solid #f8f9fc;" onerror="this.src='/sbadmin/img/undraw_profile.svg'">
+
                     <div class="mt-2">
-                        <input id="fileInput" type="file" accept="image/*" style="display: none;">
-                        <button class="btn btn-outline-success btn-sm btn-block" onclick="$('#fileInput').click();">
-                            <i class="fas fa-upload mr-1"></i> Yeni Fotoğraf Seç
-                        </button>
+                        <input id="fileInput" type="file" accept=".jpg, .jpeg, .png, .gif, .webp, image/*" style="display: none;">
+
+                        <div class="btn-group w-100">
+                            <button class="btn btn-outline-success btn-sm" onclick="$('#fileInput').click();">
+                                <i class="fas fa-upload mr-1"></i> Seç
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm" id="btnRemovePhoto">
+                                <i class="fas fa-trash-alt mr-1"></i> Kaldır
+                            </button>
+                        </div>
                     </div>
+
                     <small class="text-muted mt-2 d-block">Her boyuttaki resim otomatik uyarlanır.</small>
                     <div id="divUploadResult" class="mt-2"></div>
                 </div>
@@ -66,13 +74,11 @@
 @section Scripts {
     <script>
         $(document).ready(function () {
-            // 🛡️ API Adresini sabitledik
             var apiBaseUrl = "https://localhost:7258/api";
             var token = localStorage.getItem("token");
 
             if (!token) { window.location.href = "/Login"; return; }
 
-            // Güvenli Token Çözücü
             function parseJwt(token) {
                 try {
                     var base64Url = token.split('.')[1];
@@ -89,7 +95,6 @@
 
             GetUserInfo();
 
-            // 🟢 BİLGİLERİ VE RESMİ GETİRME
             function GetUserInfo() {
                 $.ajax({
                     url: apiBaseUrl + "/User/GetById/" + userId,
@@ -104,20 +109,18 @@
                         var photo = data.photoUrl || data.PhotoUrl;
                         if (photo) {
                             var imgPath = "";
-                            // 💡 KRİTİK DÜZELTME: Otomatik ikon ise sbadmin klasöründen al, özel resimse Files'tan al!
                             if (photo.startsWith("undraw")) {
                                 imgPath = "/sbadmin/img/" + photo;
                             } else {
                                 imgPath = apiBaseUrl.replace("/api", "") + "/Files/UserPhotos/" + photo;
                             }
                             $("#userPicture").attr("src", imgPath);
-                            $("#topProfileImage").attr("src", imgPath); // Sağ üstü de senkronize et
+                            $("#topProfileImage").attr("src", imgPath);
                         }
                     }
                 });
             }
 
-            // 🟢 BİLGİLERİ GÜNCELLEME
             $("#btnSave").click(function () {
                 var userData = {
                     FullName: $("#txtFullName").val(),
@@ -139,7 +142,7 @@
                         btn.prop("disabled", false).html('<i class="fas fa-save mr-1"></i> Değişiklikleri Kaydet');
                         if (d.status || d.Status) {
                             showResult("Profiliniz başarıyla güncellendi!", "success");
-                            $("#userNameSpan").text(toTitleCase(userData.FullName)); // Sağ üstteki ismi anında değiştir
+                            $("#userNameSpan").text(toTitleCase(userData.FullName));
                         } else {
                             showResult(d.message || d.Message, "danger");
                         }
@@ -151,7 +154,7 @@
                 });
             });
 
-            // 📸 RESİM SEÇME, SIKIŞTIRMA VE SAĞ ÜSTÜ ANINDA GÜNCELLEME (400 Hatasını Önler)
+            // 📸 FOTOĞRAF SEÇME VE YÜKLEME
             $("#fileInput").change(function () {
                 var file = this.files[0];
                 if (file) {
@@ -161,23 +164,31 @@
                         img.onload = function () {
                             var canvas = document.createElement('canvas');
                             var ctx = canvas.getContext('2d');
-                            var MAX = 600; // Profil resmi için 600px yeterli
+                            var MAX = 600;
                             var w = img.width, h = img.height;
                             if (w > h) { if (w > MAX) { h *= MAX / w; w = MAX; } } else { if (h > MAX) { w *= MAX / h; h = MAX; } }
                             canvas.width = w; canvas.height = h;
                             ctx.drawImage(img, 0, 0, w, h);
                             var compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
 
-                            // 🚀 EKRANDAKİ RESİMLERİ ANINDA DEĞİŞTİR
                             $('#userPicture').attr('src', compressedBase64);
                             $('#topProfileImage').attr('src', compressedBase64);
 
-                            // API'YE GÖNDER
                             UploadPhoto(compressedBase64);
                         };
                         img.src = e.target.result;
                     };
                     reader.readAsDataURL(file);
+                }
+            });
+
+
+            $("#btnRemovePhoto").click(function () {
+                if (confirm("Profil fotoğrafınızı kaldırmak istediğinize emin misiniz?")) {
+                    $('#userPicture').attr('src', '/sbadmin/img/undraw_profile.svg');
+                    $('#topProfileImage').attr('src', '/sbadmin/img/undraw_profile.svg');
+                    $("#fileInput").val(""); 
+                    UploadPhoto("DELETE"); 
                 }
             });
 
@@ -196,19 +207,19 @@
                     data: JSON.stringify(uploadData),
                     success: function (d) {
                         if(d.status || d.Status) {
-                            showResult("Fotoğraf başarıyla yüklendi ve güncellendi!", "success");
+                            showResult(d.message || d.Message, "success");
                         } else {
                             showResult(d.message || "Yükleme başarısız.", "danger");
                         }
                     },
                     error: function() {
-                        showResult("Resim çok büyük veya bağlantı hatası!", "danger");
+                        showResult("Resim işlenirken bağlantı hatası oluştu!", "danger");
                     }
                 });
             }
 
             function showResult(message, type) {
-                $("#divResult").stop(true,true).hide().removeClass().addClass("alert alert-" + type).html('<i class="fas fa-info-circle mr-2"></i>' + message).fadeIn(500);
+                $("#divResult").stop(true,true).hide().removeClass().addClass("alert alert-" + type + " p-2 shadow-sm rounded").html('<i class="fas fa-info-circle mr-2"></i>' + message).fadeIn(500);
                 setTimeout(function() { $("#divResult").fadeOut(1000); }, 4000);
             }
 

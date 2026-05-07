@@ -59,8 +59,8 @@ namespace Int2Uyg.API.Controllers
                 UserName = dto.UserName,
                 Email = dto.Email,
                 FullName = dto.FullName,
-                PhoneNumber = "0000000000", 
-                PhotoUrl = "undraw_profile.svg" 
+                PhoneNumber = "0000000000",
+                PhotoUrl = "undraw_profile.svg"
             };
 
             var identityResult = await _userManager.CreateAsync(userToCreate, dto.Password);
@@ -134,7 +134,7 @@ namespace Int2Uyg.API.Controllers
                 new Claim(ClaimTypes.Name, user.UserName),
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
                 new Claim("JWTID", Guid.NewGuid().ToString()),
-                new Claim("UserPhoto", user.PhotoUrl ?? "profil.jpg"),
+                new Claim("UserPhoto", user.PhotoUrl ?? "undraw_profile.svg"),
             };
 
             foreach (var userRole in userRoles)
@@ -152,7 +152,6 @@ namespace Int2Uyg.API.Controllers
         private string GenerateJWT(List<Claim> claims)
         {
             var accessTokenExpiration = DateTime.Now.AddMinutes(Convert.ToDouble(_configuration["Jwt:AccessTokenExpiration"]));
-
             var authSecret = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
 
             var tokenObject = new JwtSecurityToken(
@@ -180,20 +179,28 @@ namespace Int2Uyg.API.Controllers
 
             var path = Path.Combine(_webHostEnvironment.ContentRootPath, "wwwroot/Files/UserPhotos");
 
-
             if (!Directory.Exists(path))
             {
                 Directory.CreateDirectory(path);
             }
 
             string userPic = user.PhotoUrl;
-            if (!string.IsNullOrEmpty(userPic) && userPic != "profil.jpg")
+            if (!string.IsNullOrEmpty(userPic) && userPic != "profil.jpg" && !userPic.StartsWith("undraw"))
             {
                 var userPicUrl = Path.Combine(path, userPic);
                 if (System.IO.File.Exists(userPicUrl))
                 {
                     System.IO.File.Delete(userPicUrl);
                 }
+            }
+
+            if (dto.PicData == "DELETE")
+            {
+                user.PhotoUrl = "undraw_profile.svg"; 
+                await _userManager.UpdateAsync(user);
+                result.Status = true;
+                result.Message = "Profil fotoğrafı başarıyla kaldırıldı.";
+                return result;
             }
 
             string data = dto.PicData;
@@ -213,11 +220,11 @@ namespace Int2Uyg.API.Controllers
 
             return result;
         }
+
         [HttpPost]
-        [Authorize(Roles = "Admin")] 
+        [Authorize(Roles = "Admin")]
         public async Task<ResultDto> ChangeRole(RoleAssignDto dto)
         {
-
             var user = await _userManager.FindByIdAsync(dto.UserId);
             if (user == null)
             {
