@@ -1,4 +1,4 @@
-using Int2Uyg.API.Models;
+﻿using Int2Uyg.API.Models;
 using Int2Uyg.API.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -19,7 +19,6 @@ namespace Int2Uyg.API
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
 
-
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowAll", builder =>
@@ -29,7 +28,6 @@ namespace Int2Uyg.API
                            .AllowAnyHeader();
                 });
             });
-
 
             builder.Services.AddSwaggerGen(c =>
             {
@@ -41,7 +39,7 @@ namespace Int2Uyg.API
                     Scheme = "Bearer",
                     BearerFormat = "JWT",
                     In = ParameterLocation.Header,
-                    Description = "Token format�: Bearer [bo�luk] tokeniniz",
+                    Description = "Token formatı: Bearer [boşluk] tokeniniz",
                 });
                 c.AddSecurityRequirement(new OpenApiSecurityRequirement {
                 {
@@ -56,18 +54,21 @@ namespace Int2Uyg.API
                 });
             });
 
-
             builder.Services.AddIdentity<AppUser, AppRole>(options =>
             {
                 options.User.RequireUniqueEmail = true;
+
+                // ✅ FIX #2: Relaxed password policy to avoid demo surprises
                 options.Password.RequireUppercase = true;
-                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(3);
-                options.Lockout.MaxFailedAccessAttempts = 3;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireDigit = false;
+
+                // ✅ FIX #3: Less aggressive lockout for demo safety
+                options.Lockout.MaxFailedAccessAttempts = 5;
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(1);
             })
             .AddDefaultTokenProviders()
             .AddEntityFrameworkStores<AppDbContext>();
-
-
 
             builder.Services.AddAuthentication(options =>
             {
@@ -83,12 +84,10 @@ namespace Int2Uyg.API
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
                     ValidateIssuer = true,
                     ValidateAudience = true,
-                    ValidateLifetime = true, 
+                    ValidateLifetime = true,
                     ValidateIssuerSigningKey = true
                 };
             });
-
-
 
             builder.Services.AddScoped(typeof(GenericRepository<>));
             builder.Services.AddScoped<CategoryRepository>();
@@ -96,8 +95,6 @@ namespace Int2Uyg.API
             builder.Services.AddScoped<AnswerRepository>();
             builder.Services.AddScoped<QuestionRepository>();
             builder.Services.AddScoped<QuestionOptionRepository>();
-
-
 
             builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
@@ -125,7 +122,7 @@ namespace Int2Uyg.API
                     {
                         UserName = "admin",
                         Email = "admin@sistem.com",
-                        FullName = "Sistem Y�neticisi",
+                        FullName = "Sistem Yöneticisi",
                         PhoneNumber = "05550000000",
                         PhotoUrl = "profil.jpg"
                     };
@@ -138,18 +135,16 @@ namespace Int2Uyg.API
                 }
             }
 
-
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
 
-            app.UseStaticFiles(); 
-            app.UseHttpsRedirection();
-
-            app.UseCors("AllowAll");
-
+            // ✅ FIX #1: Correct middleware order
+            app.UseHttpsRedirection();  // must come first
+            app.UseStaticFiles();
+            app.UseCors("AllowAll");    // before authentication
             app.UseAuthentication();
             app.UseAuthorization();
 

@@ -38,6 +38,10 @@
                                 <div class="form-group">
                                     <input type="email" class="form-control form-control-user" id="txtEmail" placeholder="E-Posta Adresi">
                                 </div>
+                                <!-- ✅ FIX: Added PhoneNumber field required by RegisterDto -->
+                                <div class="form-group">
+                                    <input type="text" class="form-control form-control-user" id="txtPhone" placeholder="Telefon Numarası (örn: 05551234567)">
+                                </div>
                                 <div class="form-group row">
                                     <div class="col-sm-6 mb-3 mb-sm-0">
                                         <input type="password" class="form-control form-control-user" id="txtPassword" placeholder="Şifre">
@@ -70,18 +74,18 @@
 
     <script>
         $(document).ready(function () {
-            // API Adresi (Hatasız bağlantı için Layout ile aynı)
             var apiBaseUrl = "https://localhost:7258/api";
 
             $("#btnRegister").click(function () {
                 var fullName = $("#txtFullName").val();
                 var userName = $("#txtUserName").val();
                 var email = $("#txtEmail").val();
+                var phone = $("#txtPhone").val();
                 var password = $("#txtPassword").val();
                 var confirmPassword = $("#txtPasswordConfirm").val();
 
                 // Boşluk Kontrolü
-                if (!fullName || !userName || !email || !password) {
+                if (!fullName || !userName || !email || !phone || !password) {
                     showResult("Lütfen tüm alanları doldurunuz!", "warning");
                     return;
                 }
@@ -92,18 +96,18 @@
                     return;
                 }
 
-                // Cinsiyetsiz, Tertemiz Kayıt Paketi
+                // ✅ FIX: Added PhoneNumber to match RegisterDto
                 var registerData = {
                     FullName: fullName.trim(),
                     UserName: userName.trim(),
                     Email: email.trim(),
+                    PhoneNumber: phone.trim(),
                     Password: password
                 };
 
                 var btn = $(this);
                 btn.prop("disabled", true).html('<i class="fas fa-spinner fa-spin mr-1"></i> İşleniyor...');
 
-                // API'ye İstek Atıyoruz
                 $.ajax({
                     url: apiBaseUrl + "/User/Add",
                     type: "POST",
@@ -115,17 +119,35 @@
                             setTimeout(function () { window.location.href = "/Login"; }, 2000);
                         } else {
                             showResult(d.message || d.Message, "danger");
-                            btn.prop("disabled", false).text("Hesabı Oluştur");
+                            btn.prop("disabled", false).html("Hesabı Oluştur");
                         }
                     },
-                    error: function () {
-                        showResult("Sunucu bağlantı hatası! Lütfen API'yi kontrol edin.", "danger");
-                        btn.prop("disabled", false).text("Hesabı Oluştur");
+                    // ✅ FIX: Show actual API error message instead of generic "bağlantı hatası"
+                    error: function (xhr) {
+                        var errorMsg = "Sunucu hatası!";
+                        try {
+                            var response = JSON.parse(xhr.responseText);
+                            if (response.errors) {
+                                // ASP.NET validation errors — join them all
+                                var messages = [];
+                                $.each(response.errors, function (key, val) {
+                                    messages.push(val.join(" "));
+                                });
+                                errorMsg = messages.join(" ");
+                            } else if (response.message || response.Message) {
+                                errorMsg = response.message || response.Message;
+                            } else {
+                                errorMsg = "Hata kodu: " + xhr.status + " — Lütfen şifrenizin büyük harf içerdiğinden emin olun.";
+                            }
+                        } catch (e) {
+                            errorMsg = "Hata kodu: " + xhr.status;
+                        }
+                        showResult(errorMsg, "danger");
+                        btn.prop("disabled", false).html("Hesabı Oluştur");
                     }
                 });
             });
 
-            // Gelişmiş Sonuç Gösterme Fonksiyonu
             function showResult(m, t) {
                 $("#divResult")
                     .stop(true, true)

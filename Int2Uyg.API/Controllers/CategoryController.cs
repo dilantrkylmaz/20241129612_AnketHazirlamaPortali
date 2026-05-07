@@ -11,7 +11,7 @@ namespace Int2Uyg.API.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
-    [Authorize] 
+    [Authorize]
     public class CategoryController : ControllerBase
     {
         private readonly CategoryRepository _categoryRepository;
@@ -54,26 +54,20 @@ namespace Int2Uyg.API.Controllers
         [HttpGet("{id}/Surveys")]
         public async Task<List<SurveyDto>> SurveyList(int id)
         {
-
             var surveysQuery = _surveyRepository.Where(s => s.CategoryId == id)
                                                 .Include(i => i.Category)
                                                 .Include(i => i.User);
 
             var surveys = await surveysQuery.ToListAsync();
-
             var surveyDtos = _mapper.Map<List<SurveyDto>>(surveys);
 
-            if (User.Identity != null && User.Identity.IsAuthenticated && !User.IsInRole("Admin"))
-            {
-                var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-                surveyDtos = surveyDtos.Where(s => s.UserId == userId).ToList();
-            }
-
+            // ✅ BUG #5 FIX: Removed incorrect filter that was hiding other users' surveys.
+            // All authenticated users can now see all surveys in a category.
             return surveyDtos;
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")] 
+        [Authorize(Roles = "Admin")]
         public async Task<ResultDto> Add(CategoryDto dto)
         {
             var categories = await _categoryRepository.GetAllAsync();
@@ -94,7 +88,7 @@ namespace Int2Uyg.API.Controllers
         }
 
         [HttpPut]
-        [Authorize(Roles = "Admin")] 
+        [Authorize(Roles = "Admin")]
         public async Task<ResultDto> Update(CategoryDto dto)
         {
             var categories = await _categoryRepository.GetAllAsync();
@@ -128,7 +122,7 @@ namespace Int2Uyg.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")] 
+        [Authorize(Roles = "Admin")]
         public async Task<ResultDto> Delete(int id)
         {
             var hasSurveys = await _surveyRepository.Where(s => s.CategoryId == id).AnyAsync();
