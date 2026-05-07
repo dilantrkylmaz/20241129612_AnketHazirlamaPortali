@@ -1,0 +1,228 @@
+﻿@{
+    ViewData["Title"] = "Ankete Katıl";
+}
+
+<style>
+    /* Şık tasarım ve tıklama efektleri */
+    li.option-item {
+        cursor: pointer;
+        transition: 0.2s ease-in-out;
+        border-left: 5px solid transparent !important;
+    }
+
+        li.option-item:hover {
+            background-color: #f8f9fc !important;
+            border-left: 5px solid #4e73df !important;
+        }
+
+    li.option-selected {
+        background-color: #d1ecf1 !important;
+        border-left: 5px solid #0c5460 !important;
+        font-weight: bold;
+        color: #0c5460 !important;
+    }
+    /* Anket bitince şıkları dondurmak için */
+    .locked-options {
+        pointer-events: none;
+        opacity: 0.8;
+    }
+</style>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 bg-primary">
+                <h6 class="m-0 font-weight-bold text-white" id="surveyTitle"><i class="fas fa-poll-h mr-2"></i> Anket Yükleniyor...</h6>
+            </div>
+            <div class="card-body" id="questionsArea">
+                <div class="text-center text-muted my-4" id="loadingDiv">
+                    <i class="fas fa-spinner fa-spin fa-2x mb-2"></i><p>Sorular Yükleniyor...</p>
+                </div>
+            </div>
+            <div class="card-footer bg-light text-center">
+                <a href="/Home/Index" class="btn btn-secondary shadow-sm">
+                    <i class="fas fa-arrow-left mr-1"></i> Ana Sayfaya Dön
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            var apiBaseUrl = "https://localhost:7258/api";
+            var token = localStorage.getItem("token");
+
+            var urlParts = window.location.pathname.split('/');
+            var currentSurveyId = parseInt(urlParts[urlParts.length - 1]);
+
+            if (!token || isNaN(currentSurveyId)) { window.location.href = "/Login"; return; }
+
+            function parseJwt(token) {
+                try {
+                    var base64Url = token.split('.')[1];
+                    var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                    return JSON.parse(decodeURIComponent(window.atob(base64).split('').map(function(c) {
+                        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                    }).join('')));
+                } catch (e) { return null; }
+            }
+
+            var payload = parseJwt(token);
+            var currentUserId = payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] || payload["nameid"] || payload["Id"];
+
+            // 1. Anket Başlığını Getir
+            $.ajax({
+                url: apiBaseUrl + "/Survey/GetById/" + currentSurveyId,
+                type: "GET",
+                headers: { "Authorization": "Bearer " + token },
+                success: function (d) {
+                    $("#surveyTitle").html('<i class="fas fa-poll-h mr-2"></i> ' + (d.title || d.Title));
+                    GetQuestions();
+                },
+                error: function() { alert("Anket bulunamadı!"); window.location.href="/Home/Index"; }
+            });
+
+            // 2. Soruları Ekrana Çiz
+            function GetQuestions() {
+                $.ajax({
+                    url: apiBaseUrl + "/Question/GetQuestionsBySurveyId/" + currentSurveyId,
+                    type: "GET",
+                    headers: { "Authorization": "Bearer " + token },
+                    success: function (data) {
+                        $("#loadingDiv").hide();
+                        var area = $("#questionsArea").empty();
+
+                        if (!data || data.length === 0) {
+                            area.append('<div class="alert alert-info">Bu ankette henüz soru bulunmuyor.</div>');
+                            return;
+                        }
+
+                        $.each(data, function (i, item) {
+                            var qId = item.id || item.Id || item.questionId || item.QuestionId;
+                            var qText = item.text || item.Text || item.title || item.Title;
+
+                            // Her soruya 'question-card' sınıfı ve 'data-qid' verdik ki toplu kaydederken bulabilelim
+                            var qHtml = '<div class="card mb-4 border-left-primary shadow-sm question-card" data-qid="' + qId + '">' +
+                                '<div class="card-header bg-white font-weight-bold text-dark">' +
+                                    '<span class="badge badge-primary mr-2">Soru ' + (i+1) + '</span> ' + qText +
+                                '</div>' +
+                                '<div class="card-body">' +
+                                    '<ul class="list-group option-list" id="optionList_' + qId + '"></ul>' +
+                                '</div>' +
+                            '</div>';
+
+                            area.append(qHtml);
+                            if (qId) { LoadOptions(qId); }
+                        });
+
+                        // 🚀 TÜM SORULAR BİTİNCE EN ALTA TEK BİR BUTON EKLİYORUZ
+                        var submitAllBtn = '<div class="text-center mt-5 mb-2">' +
+                            '<button class="btn btn-success btn-lg px-5 shadow font-weight-bold" id="btnSubmitSurvey">' +
+                                '<i class="fas fa-check-double mr-2"></i> Anketi Tamamla ve Gönder' +
+                            '</button>' +
+                        '</div>';
+                        area.append(submitAllBtn);
+                    }
+                });
+            }
+
+            // 3. Sorunun Şıklarını Ekrana Çiz
+            function LoadOptions(qId) {
+                $.ajax({
+                    url: apiBaseUrl + "/QuestionOption/GetOptionsByQuestionId/" + qId,
+                    type: "GET",
+                    headers: { "Authorization": "Bearer " + token },
+                    success: function (data) {
+                        var ul = $("#optionList_" + qId).empty();
+                        var alphabet = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
+
+                        if(!data || data.length === 0) {
+                            ul.append('<li class="list-group-item text-muted small border-0 bg-light">Bu soruya şık eklenmemiş.</li>');
+                        }
+
+                        $.each(data, function (idx, opt) {
+                            var optId = opt.id || opt.Id || opt.questionOptionId || opt.QuestionOptionId;
+                            var optText = opt.optionText || opt.OptionText;
+
+                            var liHtml = '<li class="list-group-item option-item shadow-sm mb-1 rounded" data-id="' + optId + '">' +
+                                '<strong class="text-primary mr-2">' + (alphabet[idx] || "-") + ')</strong> ' + optText +
+                            '</li>';
+                            ul.append(liHtml);
+                        });
+                    }
+                });
+            }
+
+            // 4. Şıkkı Seçme Efekti
+            $(document).on("click", "li.option-item", function () {
+                $(this).parent().find('li.option-item').removeClass("option-selected");
+                $(this).addClass("option-selected");
+            });
+
+            // 5. 🚀 ANKETİ TOPLUCA KAYDETME SİHİRİ (YEPYENİ)
+            $(document).on("click", "#btnSubmitSurvey", function () {
+                var selectedOptions = $(".option-selected"); // Tüm mavi seçilmiş şıkları bul
+                var totalQuestions = $(".question-card").length; // Ekranda kaç soru var say
+
+                if (selectedOptions.length === 0) {
+                    alert("⚠️ Lütfen anketi göndermek için en az bir soruya cevap verin!");
+                    return;
+                }
+
+                if (selectedOptions.length < totalQuestions) {
+                    if (!confirm("Bazı soruları boş bıraktınız! Yine de anketi bitirip göndermek istiyor musunuz?")) {
+                        return; // Kullanıcı "İptal" derse dur
+                    }
+                }
+
+                var btn = $(this);
+                var originalHtml = btn.html();
+                btn.html('<i class="fas fa-spinner fa-spin mr-2"></i> Cevaplarınız Gönderiliyor...').prop("disabled", true);
+
+                var requests = []; // Tüm gönderim isteklerini biriktireceğimiz kova
+
+                // Seçilen her şık için arka planda paket hazırlayıp API'ye fırlatıyoruz
+                selectedOptions.each(function () {
+                    var optionId = $(this).data("id");
+                    var qId = $(this).closest('.question-card').data("qid");
+
+                    var answerData = {
+                        QuestionId: parseInt(qId),
+                        QuestionOptionId: parseInt(optionId),
+                        UserId: currentUserId
+                    };
+
+                    var request = $.ajax({
+                        url: apiBaseUrl + "/Answer/Add",
+                        type: "POST",
+                        contentType: "application/json",
+                        headers: { "Authorization": "Bearer " + token },
+                        data: JSON.stringify(answerData)
+                    });
+
+                    requests.push(request);
+                });
+
+                // BÜTÜN AJAX İSTEKLERİ (SORULAR) AYNI ANDA BİTİNCE ÇALIŞACAK KOD
+                $.when.apply($, requests).done(function () {
+                    btn.html('<i class="fas fa-check-circle mr-2"></i> Anket Başarıyla Tamamlandı!').removeClass('btn-success').addClass('btn-secondary');
+
+                    // Şıkları kilitle (Kullanıcı bir daha tıklayamasın, ekranı dondur)
+                    $("#questionsArea").addClass("locked-options");
+
+                    // 1.5 saniye sonra kullanıcıyı tebrik edip Ana Sayfaya (Index) yolla
+                    setTimeout(function() {
+                        alert("🎉 Anketi başarıyla tamamladınız, katılımınız için teşekkürler!");
+                        window.location.href = "/Home/Index";
+                    }, 1500);
+
+                }).fail(function () {
+                    alert("Sistem Hatası: Cevaplarınızın bazıları kaydedilirken sorun oluştu.");
+                    btn.html(originalHtml).prop("disabled", false);
+                });
+            });
+        });
+    </script>
+}

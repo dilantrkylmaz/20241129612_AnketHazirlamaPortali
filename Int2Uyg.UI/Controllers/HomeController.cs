@@ -65,5 +65,9 @@ namespace Int2Uyg.UI.Controllers
             ViewBag.SurveyId = id;
             return View();
         }
+        public IActionResult TakeSurvey(int id)
+        {
+            return View();
+        }
     }
 }
