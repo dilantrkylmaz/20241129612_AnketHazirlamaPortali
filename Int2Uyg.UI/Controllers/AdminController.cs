@@ -5,11 +5,11 @@ namespace Int2Uyg.UI.Controllers
     // ✅ Admin-only pages — role check is done in JavaScript
     // (Full server-side auth would require cookie auth, but this project uses JWT + localStorage)
     [Route("admin")]
-    public class AdminPanelController : Controller
+    public class AdminController : Controller
     {
         private readonly IConfiguration _configuration;
 
-        public AdminPanelController(IConfiguration configuration)
+        public AdminController(IConfiguration configuration)
         {
             _configuration = configuration;
         }
