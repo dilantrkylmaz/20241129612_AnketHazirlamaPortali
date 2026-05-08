@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace Int2Uyg.UI.Controllers
 {
@@ -23,7 +23,7 @@ namespace Int2Uyg.UI.Controllers
             return View();
         }
 
-        [Route("Surveys/{id?}")] 
+        [Route("Surveys/{id?}")]
         public IActionResult Surveys(int? id)
         {
             ViewBag.ApiBaseUrl = _configuration["ApiBaseUrl"];
@@ -65,8 +65,17 @@ namespace Int2Uyg.UI.Controllers
             ViewBag.SurveyId = id;
             return View();
         }
+
         public IActionResult TakeSurvey(int id)
         {
+            return View();
+        }
+
+        // ✅ NEW: Kullanıcı Yönetimi sayfası (sadece Admin erişebilir, kontrol JS tarafında yapılıyor)
+        [Route("UserManagement")]
+        public IActionResult UserManagement()
+        {
+            ViewBag.ApiBaseUrl = _configuration["ApiBaseUrl"];
             return View();
         }
     }

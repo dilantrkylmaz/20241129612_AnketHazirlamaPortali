@@ -3,7 +3,6 @@
 }
 
 <style>
-    /* Şık tasarım ve tıklama efektleri */
     li.option-item {
         cursor: pointer;
         transition: 0.2s ease-in-out;
@@ -21,7 +20,7 @@
         font-weight: bold;
         color: #0c5460 !important;
     }
-    /* Anket bitince şıkları dondurmak için */
+
     .locked-options {
         pointer-events: none;
         opacity: 0.8;
@@ -70,7 +69,9 @@
             }
 
             var payload = parseJwt(token);
-            var currentUserId = payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] || payload["nameid"] || payload["Id"];
+            var currentUserId = payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"]
+                             || payload["nameid"]
+                             || payload["Id"];
 
             // 1. Anket Başlığını Getir
             $.ajax({
@@ -103,7 +104,6 @@
                             var qId = item.id || item.Id || item.questionId || item.QuestionId;
                             var qText = item.text || item.Text || item.title || item.Title;
 
-                            // Her soruya 'question-card' sınıfı ve 'data-qid' verdik ki toplu kaydederken bulabilelim
                             var qHtml = '<div class="card mb-4 border-left-primary shadow-sm question-card" data-qid="' + qId + '">' +
                                 '<div class="card-header bg-white font-weight-bold text-dark">' +
                                     '<span class="badge badge-primary mr-2">Soru ' + (i+1) + '</span> ' + qText +
@@ -117,7 +117,7 @@
                             if (qId) { LoadOptions(qId); }
                         });
 
-                        // 🚀 TÜM SORULAR BİTİNCE EN ALTA TEK BİR BUTON EKLİYORUZ
+                        // Tek gönder butonu en alta
                         var submitAllBtn = '<div class="text-center mt-5 mb-2">' +
                             '<button class="btn btn-success btn-lg px-5 shadow font-weight-bold" id="btnSubmitSurvey">' +
                                 '<i class="fas fa-check-double mr-2"></i> Anketi Tamamla ve Gönder' +
@@ -128,7 +128,7 @@
                 });
             }
 
-            // 3. Sorunun Şıklarını Ekrana Çiz
+            // 3. Şıkları Çiz
             function LoadOptions(qId) {
                 $.ajax({
                     url: apiBaseUrl + "/QuestionOption/GetOptionsByQuestionId/" + qId,
@@ -138,8 +138,9 @@
                         var ul = $("#optionList_" + qId).empty();
                         var alphabet = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
 
-                        if(!data || data.length === 0) {
+                        if (!data || data.length === 0) {
                             ul.append('<li class="list-group-item text-muted small border-0 bg-light">Bu soruya şık eklenmemiş.</li>');
+                            return;
                         }
 
                         $.each(data, function (idx, opt) {
@@ -155,16 +156,17 @@
                 });
             }
 
-            // 4. Şıkkı Seçme Efekti
+            // 4. Şık Seçme Efekti
             $(document).on("click", "li.option-item", function () {
                 $(this).parent().find('li.option-item').removeClass("option-selected");
                 $(this).addClass("option-selected");
             });
 
-            // 5. 🚀 ANKETİ TOPLUCA KAYDETME SİHİRİ (YEPYENİ)
+            // 5. Anketi Toplu Gönder
+            // ✅ FIX: SelectedOptionId (AnswerDto ile eşleşen alan) + SurveyId eklendi
             $(document).on("click", "#btnSubmitSurvey", function () {
-                var selectedOptions = $(".option-selected"); // Tüm mavi seçilmiş şıkları bul
-                var totalQuestions = $(".question-card").length; // Ekranda kaç soru var say
+                var selectedOptions = $(".option-selected");
+                var totalQuestions = $(".question-card").length;
 
                 if (selectedOptions.length === 0) {
                     alert("⚠️ Lütfen anketi göndermek için en az bir soruya cevap verin!");
@@ -173,7 +175,7 @@
 
                 if (selectedOptions.length < totalQuestions) {
                     if (!confirm("Bazı soruları boş bıraktınız! Yine de anketi bitirip göndermek istiyor musunuz?")) {
-                        return; // Kullanıcı "İptal" derse dur
+                        return;
                     }
                 }
 
@@ -181,17 +183,18 @@
                 var originalHtml = btn.html();
                 btn.html('<i class="fas fa-spinner fa-spin mr-2"></i> Cevaplarınız Gönderiliyor...').prop("disabled", true);
 
-                var requests = []; // Tüm gönderim isteklerini biriktireceğimiz kova
+                var requests = [];
 
-                // Seçilen her şık için arka planda paket hazırlayıp API'ye fırlatıyoruz
                 selectedOptions.each(function () {
                     var optionId = $(this).data("id");
                     var qId = $(this).closest('.question-card').data("qid");
 
+                    // ✅ FIX: QuestionOptionId → SelectedOptionId, SurveyId eklendi
                     var answerData = {
+                        UserId: currentUserId,
                         QuestionId: parseInt(qId),
-                        QuestionOptionId: parseInt(optionId),
-                        UserId: currentUserId
+                        SurveyId: currentSurveyId,
+                        SelectedOptionId: parseInt(optionId)
                     };
 
                     var request = $.ajax({
@@ -205,14 +208,11 @@
                     requests.push(request);
                 });
 
-                // BÜTÜN AJAX İSTEKLERİ (SORULAR) AYNI ANDA BİTİNCE ÇALIŞACAK KOD
                 $.when.apply($, requests).done(function () {
-                    btn.html('<i class="fas fa-check-circle mr-2"></i> Anket Başarıyla Tamamlandı!').removeClass('btn-success').addClass('btn-secondary');
-
-                    // Şıkları kilitle (Kullanıcı bir daha tıklayamasın, ekranı dondur)
+                    btn.html('<i class="fas fa-check-circle mr-2"></i> Anket Başarıyla Tamamlandı!')
+                       .removeClass('btn-success').addClass('btn-secondary');
                     $("#questionsArea").addClass("locked-options");
 
-                    // 1.5 saniye sonra kullanıcıyı tebrik edip Ana Sayfaya (Index) yolla
                     setTimeout(function() {
                         alert("🎉 Anketi başarıyla tamamladınız, katılımınız için teşekkürler!");
                         window.location.href = "/Home/Index";

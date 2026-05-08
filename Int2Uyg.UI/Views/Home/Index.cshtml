@@ -11,13 +11,16 @@
     </div>
 
     <div class="row">
-        <div class="col-xl-6 col-md-6 mb-4">
+        <!-- Toplam Anket -->
+        <div class="col-xl-3 col-md-6 mb-4">
             <div class="card border-left-primary shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Toplam Anket Sayısı</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalSurveys">0</div>
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Toplam Anket</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalSurveys">
+                                <i class="fas fa-spinner fa-spin text-muted"></i>
+                            </div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-poll fa-2x text-gray-300"></i>
@@ -27,13 +30,16 @@
             </div>
         </div>
 
-        <div class="col-xl-6 col-md-6 mb-4">
+        <!-- Toplam Kategori -->
+        <div class="col-xl-3 col-md-6 mb-4">
             <div class="card border-left-success shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Kategoriler</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalCategories">0</div>
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Toplam Kategori</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalCategories">
+                                <i class="fas fa-spinner fa-spin text-muted"></i>
+                            </div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-folder-open fa-2x text-gray-300"></i>
@@ -42,18 +48,90 @@
                 </div>
             </div>
         </div>
+
+        <!-- Aktif Anket -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Aktif Anket</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="activeSurveys">
+                                <i class="fas fa-spinner fa-spin text-muted"></i>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aktif Kategori -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Aktif Kategori</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="activeCategories">
+                                <i class="fas fa-spinner fa-spin text-muted"></i>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-folder fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
+    <!-- Son Eklenen Anketler -->
     <div class="row">
-        <div class="col-lg-12">
+        <div class="col-lg-8">
             <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Sistem Durumu</h6>
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-clock mr-1"></i> Son Eklenen Anketler
+                    </h6>
+                    <a href="/Surveys" class="btn btn-sm btn-outline-primary">Tümünü Gör</a>
                 </div>
-                <div class="card-body text-center py-5">
-                    <img src="~/sbadmin/img/undraw_posting_photo.svg" style="width: 250px;" class="mb-4">
-                    <h5>Anket Portalı Yönetim Paneline Başarıyla Giriş Yaptınız.</h5>
-                    <p class="text-muted">Sol taraftaki menüyü kullanarak anketleri yönetebilir veya yeni kategoriler ekleyebilirsiniz.</p>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="tbRecentSurveys">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="pl-3">Anket Başlığı</th>
+                                    <th>Kategori</th>
+                                    <th>Durum</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted py-3">
+                                        <i class="fas fa-spinner fa-spin mr-1"></i> Yükleniyor...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kategoriler Özet -->
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-success">
+                        <i class="fas fa-folder mr-1"></i> Kategoriler
+                    </h6>
+                    <a href="/Categories" class="btn btn-sm btn-outline-success">Yönet</a>
+                </div>
+                <div class="card-body" id="categoryCards">
+                    <p class="text-center text-muted"><i class="fas fa-spinner fa-spin"></i></p>
                 </div>
             </div>
         </div>
@@ -63,23 +141,109 @@
 @section Scripts {
     <script>
         function toTitleCase(str) {
-            if(!str) return "";
-            return str.split(' ').map(function(word) {
+            if (!str) return "";
+            return str.split(' ').map(function (word) {
                 return word.charAt(0).toLocaleUpperCase('tr-TR') + word.slice(1).toLocaleLowerCase('tr-TR');
             }).join(' ');
         }
 
         $(document).ready(function () {
+            var apiBaseUrl = "https://localhost:7258/api";
             var token = localStorage.getItem("token");
-            if (token) {
-                if (typeof parseJwt === "function") {
-                    var payload = parseJwt(token);
-                    if (payload) {
-                        var rawName = payload["FullName"] || payload["unique_name"] || payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] || "Kullanıcı";
-                        $("#welcomeUserName").text(toTitleCase(rawName));
-                    }
+            if (!token) { window.location.href = "/Login"; return; }
+
+            // Hoş geldin mesajı
+            if (typeof parseJwt === "function") {
+                var payload = parseJwt(token);
+                if (payload) {
+                    var rawName = payload["FullName"]
+                        || payload["unique_name"]
+                        || payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"]
+                        || "Kullanıcı";
+                    $("#welcomeUserName").text(toTitleCase(rawName));
                 }
             }
+
+            var headers = { "Authorization": "Bearer " + token };
+
+            // Anketleri çek
+            $.ajax({
+                url: apiBaseUrl + "/Survey/List",
+                type: "GET",
+                headers: headers,
+                success: function (surveys) {
+                    var total = surveys.length;
+                    var active = surveys.filter(function (s) { return s.isActive || s.IsActive; }).length;
+
+                    $("#totalSurveys").text(total);
+                    $("#activeSurveys").text(active);
+
+                    // Son 5 anket tablosu
+                    var recent = surveys.slice(0, 5);
+                    var rows = "";
+                    if (recent.length === 0) {
+                        rows = '<tr><td colspan="3" class="text-center text-muted py-3">Henüz anket yok.</td></tr>';
+                    } else {
+                        $.each(recent, function (i, s) {
+                            var title = toTitleCase(s.title || s.Title || "—");
+                            var cat = s.categoryName || s.CategoryName || "—";
+                            var badge = (s.isActive || s.IsActive)
+                                ? '<span class="badge badge-success">Yayında</span>'
+                                : '<span class="badge badge-danger">Pasif</span>';
+                            rows += '<tr>' +
+                                '<td class="pl-3 font-weight-bold text-dark">' + title + '</td>' +
+                                '<td>' + cat + '</td>' +
+                                '<td>' + badge + '</td>' +
+                                '</tr>';
+                        });
+                    }
+                    $("#tbRecentSurveys tbody").html(rows);
+                },
+                error: function () {
+                    $("#totalSurveys").text("—");
+                    $("#activeSurveys").text("—");
+                    $("#tbRecentSurveys tbody").html('<tr><td colspan="3" class="text-center text-danger">Yüklenemedi.</td></tr>');
+                }
+            });
+
+            // Kategorileri çek
+            $.ajax({
+                url: apiBaseUrl + "/Category/List",
+                type: "GET",
+                headers: headers,
+                success: function (categories) {
+                    var total = categories.length;
+                    var active = categories.filter(function (c) { return c.isActive || c.IsActive; }).length;
+
+                    $("#totalCategories").text(total);
+                    $("#activeCategories").text(active);
+
+                    // Kategori kartları
+                    var html = "";
+                    if (categories.length === 0) {
+                        html = '<p class="text-muted text-center small">Henüz kategori yok.</p>';
+                    } else {
+                        $.each(categories.slice(0, 6), function (i, c) {
+                            var name = toTitleCase(c.name || c.Name || "—");
+                            var count = c.surveyCount || 0;
+                            var isActive = c.isActive || c.IsActive;
+                            html += '<div class="d-flex align-items-center justify-content-between mb-2 p-2 rounded ' +
+                                (isActive ? 'bg-light' : 'bg-light text-muted') + '">' +
+                                '<span class="font-weight-bold small ' + (isActive ? 'text-dark' : 'text-muted') + '">' +
+                                    '<i class="fas fa-folder mr-1 ' + (isActive ? 'text-success' : 'text-muted') + '"></i>' + name +
+                                '</span>' +
+                                '<span class="badge badge-primary">' + count + ' anket</span>' +
+                                '</div>';
+                        });
+                    }
+                    $("#categoryCards").html(html);
+                },
+                error: function () {
+                    $("#totalCategories").text("—");
+                    $("#activeCategories").text("—");
+                    $("#categoryCards").html('<p class="text-danger small text-center">Yüklenemedi.</p>');
+                }
+            });
         });
     </script>
 }

@@ -30,48 +30,75 @@
     <div class="col-md-4" id="formDiv">
         <div class="card shadow mb-4 border-left-primary">
             <div class="card-header py-3 bg-white">
-                <h6 class="m-0 font-weight-bold text-primary" id="formTitle">Anket İşlemleri</h6>
+                <h6 class="m-0 font-weight-bold text-primary" id="formTitle">Yeni Anket Oluştur</h6>
             </div>
             <div class="card-body">
                 <form id="frmSurvey">
                     <input type="hidden" id="txtId" />
                     <input type="hidden" id="hiddenPhotoUrl" />
 
+                    <!-- Anket Görseli -->
                     <div class="text-center mb-3">
-                        <img src="/sbadmin/img/undraw_posting_photo.svg" id="surveyPicture" class="img-fluid rounded shadow-sm mb-2" style="height: 140px; object-fit: cover; width: 100%; border: 1px solid #ddd;" onerror="this.src='/sbadmin/img/undraw_posting_photo.svg'">
-
-                        <input id="fileInput" type="file" accept=".jpg, .jpeg, .png, .gif, .webp, image/*" style="display: none;">
-
+                        <img src="/sbadmin/img/undraw_posting_photo.svg" id="surveyPicture"
+                             class="img-fluid rounded shadow-sm mb-2"
+                             style="height: 140px; object-fit: cover; width: 100%; border: 1px solid #ddd;"
+                             onerror="this.src='/sbadmin/img/undraw_posting_photo.svg'">
+                        <input id="fileInput" type="file" accept=".jpg,.jpeg,.png,.gif,.webp,image/*" style="display:none;">
                         <div class="btn-group w-100">
-                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="$('#fileInput').click();"><i class="fas fa-camera"></i> Seç</button>
-                            <button type="button" class="btn btn-outline-danger btn-sm" id="btnRemovePicture"><i class="fas fa-trash-alt"></i> Kaldır</button>
+                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="$('#fileInput').click();">
+                                <i class="fas fa-camera"></i> Görsel Seç
+                            </button>
+                            <button type="button" class="btn btn-outline-danger btn-sm" id="btnRemovePicture">
+                                <i class="fas fa-trash-alt"></i> Kaldır
+                            </button>
                         </div>
                     </div>
 
+                    <!-- Başlık -->
                     <div class="form-group">
-                        <label class="small font-weight-bold">Anket Başlığı</label>
-                        <input type="text" class="form-control" id="txtTitle" placeholder="Örn: Çalışan Memnuniyeti">
+                        <label class="small font-weight-bold">Anket Başlığı <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="txtTitle" placeholder="Örn: Çalışan Memnuniyeti Anketi">
                     </div>
 
+                    <!-- ✅ FIX: Description alanı eklendi -->
                     <div class="form-group">
-                        <label class="small font-weight-bold">Kategori Seçin</label>
-                        <select class="form-control" id="cbCategory"></select>
+                        <label class="small font-weight-bold">Açıklama</label>
+                        <textarea class="form-control" id="txtDescription" rows="3"
+                                  placeholder="Anket hakkında kısa bir açıklama yazın..."></textarea>
                     </div>
 
+                    <!-- Kategori -->
+                    <div class="form-group">
+                        <label class="small font-weight-bold">Kategori <span class="text-danger">*</span></label>
+                        <select class="form-control" id="cbCategory">
+                            <option value="">Seçiniz...</option>
+                        </select>
+                    </div>
+
+                    <!-- Durum -->
                     <div class="form-group">
                         <div class="custom-control custom-checkbox small">
                             <input type="checkbox" class="custom-control-input" id="cbIsActive" checked>
-                            <label class="custom-control-label" for="cbIsActive">Yayında</label>
+                            <label class="custom-control-label" for="cbIsActive">Yayında (Aktif)</label>
                         </div>
                     </div>
 
                     <hr>
-                    <button type="button" class="btn btn-primary btn-block shadow-sm" id="btnSave"><b>KAYDET</b></button>
+
+                    <button type="button" class="btn btn-primary btn-block shadow-sm" id="btnSave">
+                        <i class="fas fa-save mr-1"></i> <b>KAYDET</b>
+                    </button>
 
                     <div id="editButtons" style="display:none;">
-                        <button type="button" class="btn btn-warning btn-block shadow-sm" id="btnUpdate"><b>GÜNCELLE</b></button>
-                        <button type="button" class="btn btn-danger btn-block shadow-sm" id="btnDelete"><b>SİL</b></button>
-                        <button type="button" class="btn btn-secondary btn-block shadow-sm" id="btnCancel"><b>VAZGEÇ</b></button>
+                        <button type="button" class="btn btn-warning btn-block shadow-sm" id="btnUpdate">
+                            <i class="fas fa-edit mr-1"></i> <b>GÜNCELLE</b>
+                        </button>
+                        <button type="button" class="btn btn-danger btn-block shadow-sm" id="btnDelete">
+                            <i class="fas fa-trash mr-1"></i> <b>SİL</b>
+                        </button>
+                        <button type="button" class="btn btn-secondary btn-block shadow-sm" id="btnCancel">
+                            <i class="fas fa-times mr-1"></i> <b>VAZGEÇ</b>
+                        </button>
                     </div>
                 </form>
                 <div id="divResult" class="mt-3" style="display:none;"></div>
@@ -100,17 +127,18 @@
             }
 
             var payload = parseJwt(token);
-            var currentUserId = payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] || payload["nameid"] || payload["Id"];
+            var currentUserId = payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"]
+                              || payload["nameid"] || payload["Id"];
             var roles = payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
             var isAdmin = roles && (roles === "Admin" || roles.includes("Admin"));
 
             GetCategoriesForDropdown();
             GetSurveyList();
 
+            // --- Görsel seçme ---
             $("#fileInput").change(function (e) {
                 var file = e.target.files[0];
                 if (!file) return;
-
                 var reader = new FileReader();
                 reader.onload = function (event) {
                     $('#surveyPicture').attr('src', event.target.result);
@@ -118,8 +146,7 @@
                     img.onload = function () {
                         var canvas = document.createElement('canvas');
                         var ctx = canvas.getContext('2d');
-                        var MAX = 800;
-                        var w = img.width, h = img.height;
+                        var MAX = 800, w = img.width, h = img.height;
                         if (w > h) { if (w > MAX) { h *= MAX / w; w = MAX; } }
                         else { if (h > MAX) { w *= MAX / h; h = MAX; } }
                         canvas.width = w; canvas.height = h;
@@ -132,44 +159,47 @@
             });
 
             $("#btnRemovePicture").click(function () {
-                if(confirm("Anket resmini kaldırmak istediğinize emin misiniz?")) {
+                if (confirm("Anket resmini kaldırmak istediğinize emin misiniz?")) {
                     $('#surveyPicture').attr('src', '/sbadmin/img/undraw_posting_photo.svg');
                     selectedImageBase64 = "DELETE";
                     $("#fileInput").val("");
                 }
             });
 
+            // --- Anket Listesi ---
             function GetSurveyList() {
                 $.ajax({
                     url: apiBaseUrl + "/Survey/List",
                     type: "GET",
                     headers: { "Authorization": "Bearer " + token },
                     success: function (data) {
-                        var row = ""; $("#tbSurveyList tbody").empty();
+                        var row = "";
+                        $("#tbSurveyList tbody").empty();
                         $.each(data, function (i, item) {
                             var sTitle = item.title || item.Title;
                             if (!sTitle) return;
 
                             var photoUrl = item.photoUrl || item.PhotoUrl;
+                            var imgPath = (photoUrl && photoUrl !== "NO_IMAGE" && photoUrl !== "DELETE")
+                                ? apiBaseUrl.replace("/api", "") + "/Files/Surveys/" + photoUrl
+                                : "/sbadmin/img/undraw_posting_photo.svg";
 
-                            var imgPath = (photoUrl && photoUrl !== "NO_IMAGE" && photoUrl !== "DELETE") ?
-                                (apiBaseUrl.replace("/api", "") + "/Files/Surveys/" + photoUrl) : "/sbadmin/img/undraw_posting_photo.svg";
-
-                            // 🛡️ DÜZELTME 1: "Kapalı" yazısı "Pasif" olarak değiştirildi
-                            var statusBadge = (item.isActive || item.IsActive) ? '<span class="badge badge-success">Yayında</span>' : '<span class="badge badge-danger">Pasif</span>';
+                            var statusBadge = (item.isActive || item.IsActive)
+                                ? '<span class="badge badge-success">Yayında</span>'
+                                : '<span class="badge badge-danger">Pasif</span>';
                             var catName = item.categoryName || item.CategoryName || "Genel";
 
-                            row += '<tr>' +
-                                '<td><img src="' + imgPath + '" onerror="this.src=\'/sbadmin/img/undraw_posting_photo.svg\'" class="rounded shadow-sm" style="width: 50px; height: 50px; object-fit: cover;"></td>' +
-                                '<td class="font-weight-bold text-dark">' + toTitleCase(sTitle) + '</td>' +
-                                '<td>' + catName + '</td>' +
-                                '<td>' + statusBadge + '</td>' +
-                                '<td>';
+                            row += '<tr>';
+                            row += '<td><img src="' + imgPath + '" onerror="this.src=\'/sbadmin/img/undraw_posting_photo.svg\'" class="rounded shadow-sm" style="width:50px;height:50px;object-fit:cover;"></td>';
+                            row += '<td class="font-weight-bold text-dark">' + toTitleCase(sTitle) + '</td>';
+                            row += '<td>' + catName + '</td>';
+                            row += '<td>' + statusBadge + '</td>';
+                            row += '<td>';
 
                             var ownerId = item.appUserId || item.userId || item.AppUserId || item.UserId;
                             if (isAdmin || ownerId == currentUserId) {
-                                row += '<button class="btn btn-info btn-sm btnEdit mr-1" data-id="' + (item.id || item.Id) + '"><i class="fa fa-edit"></i></button>' +
-                                       '<a href="/Home/Questions/' + (item.id || item.Id) + '" class="btn btn-primary btn-sm"><i class="fa fa-list"></i></a>';
+                                row += '<button class="btn btn-info btn-sm btnEdit mr-1" data-id="' + (item.id || item.Id) + '"><i class="fa fa-edit"></i></button>';
+                                row += '<a href="/Home/Questions/' + (item.id || item.Id) + '" class="btn btn-primary btn-sm"><i class="fa fa-list"></i></a>';
                             } else {
                                 row += '<a href="/Home/TakeSurvey/' + (item.id || item.Id) + '" class="btn btn-success btn-sm"><i class="fa fa-pen"></i> Katıl</a>';
                             }
@@ -180,21 +210,22 @@
                 });
             }
 
-            // 🟢 KAYDET
+            // --- KAYDET ---
             $("#btnSave").click(function () {
-                var title = $("#txtTitle").val();
+                var title = $("#txtTitle").val().trim();
                 var catId = $("#cbCategory").val();
 
-                // 🛡️ DÜZELTME 2: Boş alan uyarısı ekranda belirgin hale getirildi
-                if (!title || title.trim() === "" || !catId) {
-                    alert("⚠️ Uyarı: Lütfen Anket Başlığı ve Kategori alanlarını eksiksiz doldurunuz!");
-                    showResult("Eksik alanları doldurunuz!", "warning");
+                if (!title || !catId) {
+                    showResult("⚠️ Lütfen Anket Başlığı ve Kategori alanlarını doldurunuz!", "warning");
                     return;
                 }
 
+                // ✅ FIX: description artık formdan geliyor
+                var description = $("#txtDescription").val().trim() || "Açıklama belirtilmedi.";
+
                 var surveyData = {
                     Title: title,
-                    Description: "Belirtilmedi",
+                    Description: description,
                     CategoryId: parseInt(catId),
                     IsActive: $("#cbIsActive").is(":checked"),
                     PhotoUrl: selectedImageBase64 || "NO_IMAGE",
@@ -212,28 +243,33 @@
                             showResult("Anket başarıyla eklendi!", "success");
                             ResetForm();
                             GetSurveyList();
-                        } else { showResult(res.message || res.Message, "danger"); }
+                        } else {
+                            showResult(res.message || res.Message, "danger");
+                        }
                     },
-                    error: function(xhr) { showResult("Sunucu Hatası: " + xhr.status, "danger"); }
+                    error: function (xhr) {
+                        showResult("Sunucu Hatası: " + xhr.status, "danger");
+                    }
                 });
             });
 
-            // 🟠 GÜNCELLE
+            // --- GÜNCELLE ---
             $("#btnUpdate").click(function () {
-                var title = $("#txtTitle").val();
+                var title = $("#txtTitle").val().trim();
                 var catId = $("#cbCategory").val();
 
-                // 🛡️ DÜZELTME 2: Boş alan uyarısı güncelleme butonuna da eklendi
-                if (!title || title.trim() === "" || !catId) {
-                    alert("⚠️ Uyarı: Lütfen Anket Başlığı ve Kategori alanlarını eksiksiz doldurunuz!");
-                    showResult("Eksik alanları doldurunuz!", "warning");
+                if (!title || !catId) {
+                    showResult("⚠️ Lütfen Anket Başlığı ve Kategori alanlarını doldurunuz!", "warning");
                     return;
                 }
+
+                // ✅ FIX: description güncelleme sırasında da formdan geliyor
+                var description = $("#txtDescription").val().trim() || "Açıklama belirtilmedi.";
 
                 var surveyData = {
                     Id: parseInt($("#txtId").val()),
                     Title: title,
-                    Description: "Belirtilmedi",
+                    Description: description,
                     CategoryId: parseInt(catId),
                     IsActive: $("#cbIsActive").is(":checked"),
                     PhotoUrl: selectedImageBase64 || "NO_IMAGE",
@@ -251,11 +287,14 @@
                             showResult("Anket başarıyla güncellendi!", "success");
                             ResetForm();
                             GetSurveyList();
-                        } else { showResult(res.message || res.Message, "danger"); }
+                        } else {
+                            showResult(res.message || res.Message, "danger");
+                        }
                     }
                 });
             });
 
+            // --- DÜZENLE (form doldur) ---
             $(document).on("click", ".btnEdit", function () {
                 var id = $(this).data("id");
                 $.ajax({
@@ -265,22 +304,29 @@
                     success: function (d) {
                         $("#txtId").val(d.id || d.Id);
                         $("#txtTitle").val(d.title || d.Title);
+                        // ✅ FIX: Mevcut açıklamayı forma yükle
+                        var desc = d.description || d.Description || "";
+                        $("#txtDescription").val(desc === "Açıklama belirtilmedi." ? "" : desc);
                         $("#cbCategory").val(d.categoryId || d.CategoryId);
                         $("#cbIsActive").prop("checked", d.isActive !== undefined ? d.isActive : d.IsActive);
 
                         var photo = d.photoUrl || d.PhotoUrl;
                         $("#hiddenPhotoUrl").val(photo);
-
-                        var imgPath = (photo && photo !== "NO_IMAGE") ? (apiBaseUrl.replace("/api", "") + "/Files/Surveys/" + photo) : "/sbadmin/img/undraw_posting_photo.svg";
+                        var imgPath = (photo && photo !== "NO_IMAGE")
+                            ? apiBaseUrl.replace("/api", "") + "/Files/Surveys/" + photo
+                            : "/sbadmin/img/undraw_posting_photo.svg";
                         $('#surveyPicture').attr('src', imgPath);
 
-                        $("#btnSave").hide(); $("#editButtons").show(); $("#formTitle").text("Anketi Düzenle");
+                        $("#btnSave").hide();
+                        $("#editButtons").show();
+                        $("#formTitle").text("Anketi Düzenle");
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                     }
                 });
             });
 
-            $(document).on("click", "#btnDelete", function () {
+            // --- SİL ---
+            $("#btnDelete").click(function () {
                 var id = $("#txtId").val();
                 if (confirm("Bu anketi tamamen silmek istediğinize emin misiniz?")) {
                     $.ajax({
@@ -298,6 +344,7 @@
                 }
             });
 
+            // --- Kategori Dropdown ---
             function GetCategoriesForDropdown() {
                 $.ajax({
                     url: apiBaseUrl + "/Category/List",
@@ -306,27 +353,39 @@
                     success: function (data) {
                         var dropdown = $("#cbCategory").empty().append('<option value="">Seçiniz...</option>');
                         $.each(data, function (i, item) {
-                            if (item.isActive || item.IsActive) dropdown.append('<option value="' + (item.id || item.Id) + '">' + toTitleCase(item.name || item.Name) + '</option>');
+                            if (item.isActive || item.IsActive) {
+                                dropdown.append('<option value="' + (item.id || item.Id) + '">' + toTitleCase(item.name || item.Name) + '</option>');
+                            }
                         });
                     }
                 });
             }
 
             function ResetForm() {
-                $("#frmSurvey")[0].reset(); $("#txtId").val(""); $("#hiddenPhotoUrl").val("");
-                $('#surveyPicture').attr('src', '/sbadmin/img/undraw_posting_photo.svg'); selectedImageBase64 = "";
-                $("#btnSave").show(); $("#editButtons").hide(); $("#formTitle").text("Yeni Anket Oluştur");
+                $("#frmSurvey")[0].reset();
+                $("#txtId").val("");
+                $("#txtDescription").val("");
+                $("#hiddenPhotoUrl").val("");
+                $('#surveyPicture').attr('src', '/sbadmin/img/undraw_posting_photo.svg');
+                selectedImageBase64 = "";
+                $("#btnSave").show();
+                $("#editButtons").hide();
+                $("#formTitle").text("Yeni Anket Oluştur");
             }
 
             $("#btnCancel").click(function () { ResetForm(); });
 
             function showResult(m, t) {
-                $("#divResult").stop(true,true).hide().removeClass().addClass("alert alert-" + t).html(m).fadeIn().fadeOut(4000);
+                $("#divResult").stop(true, true).hide()
+                    .removeClass().addClass("alert alert-" + t)
+                    .html(m).fadeIn().fadeOut(4000);
             }
 
             function toTitleCase(str) {
-                if(!str) return "";
-                return str.split(' ').map(function(word) { return word.charAt(0).toLocaleUpperCase('tr-TR') + word.slice(1).toLocaleLowerCase('tr-TR'); }).join(' ');
+                if (!str) return "";
+                return str.split(' ').map(function (word) {
+                    return word.charAt(0).toLocaleUpperCase('tr-TR') + word.slice(1).toLocaleLowerCase('tr-TR');
+                }).join(' ');
             }
         });
     </script>

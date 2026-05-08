@@ -62,6 +62,14 @@
                 </a>
             </li>
 
+            <!-- ✅ NEW: Sadece Admin'e gösterilen Kullanıcı Yönetimi menüsü -->
+            <li class="nav-item" id="menuUserManagement" style="display:none;">
+                <a class="nav-link" href="/UserManagement">
+                    <i class="fas fa-fw fa-users-cog"></i>
+                    <span>Kullanıcı Yönetimi</span>
+                </a>
+            </li>
+
             <hr class="sidebar-divider d-none d-md-block">
 
             <div class="text-center d-none d-md-inline">
@@ -83,15 +91,21 @@
                         <div class="topbar-divider d-none d-sm-block"></div>
 
                         <li class="nav-item dropdown no-arrow">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                               data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <span id="userBadge" class="badge p-1 mr-2 text-white" style="font-size: 11px;">Yükleniyor...</span>
                                 <span id="userNameSpan" class="mr-2 d-none d-lg-inline text-gray-800 font-weight-bold small">...</span>
-                                <img class="img-profile rounded-circle shadow-sm" src="~/sbadmin/img/undraw_profile.svg" id="topProfileImage" style="width: 32px; height: 32px; object-fit: cover;">
+                                <img class="img-profile rounded-circle shadow-sm" src="~/sbadmin/img/undraw_profile.svg"
+                                     id="topProfileImage" style="width: 32px; height: 32px; object-fit: cover;">
                             </a>
 
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
                                 <a class="dropdown-item" href="/Profile">
                                     <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i> Profilim
+                                </a>
+                                <!-- Admin menüsü dropdown'da da göster -->
+                                <a class="dropdown-item" href="/UserManagement" id="dropdownUserMgmt" style="display:none;">
+                                    <i class="fas fa-users-cog fa-sm fa-fw mr-2 text-gray-400"></i> Kullanıcı Yönetimi
                                 </a>
                                 <div class="dropdown-divider"></div>
                                 <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
@@ -159,7 +173,7 @@
         }
 
         function toTitleCase(str) {
-            if(!str) return "";
+            if (!str) return "";
             return str.split(' ').map(function(word) {
                 return word.charAt(0).toLocaleUpperCase('tr-TR') + word.slice(1).toLocaleLowerCase('tr-TR');
             }).join(' ');
@@ -178,20 +192,29 @@
             if (token) {
                 var payload = parseJwt(token);
                 if (payload) {
-                    var rawName = payload["FullName"] || payload["unique_name"] || payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] || "Kullanıcı";
+                    var rawName = payload["FullName"]
+                        || payload["unique_name"]
+                        || payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"]
+                        || "Kullanıcı";
                     $("#userNameSpan").text(toTitleCase(rawName));
 
                     var roles = payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
                     var badge = $("#userBadge");
                     badge.removeClass("badge-success badge-primary");
 
-                    if (roles && (roles === "Admin" || roles.includes("Admin"))) {
+                    var isAdmin = roles && (roles === "Admin" || roles.includes("Admin"));
+
+                    if (isAdmin) {
                         badge.addClass("badge-success").text("Sistem Yöneticisi");
+                        // ✅ Admin ise Kullanıcı Yönetimi menüsünü göster
+                        $("#menuUserManagement").show();
+                        $("#dropdownUserMgmt").show();
                     } else {
                         badge.addClass("badge-primary").text("Portal Üyesi");
                     }
 
-                    var userId = payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] || payload["nameid"] || payload["sub"] || payload["Id"];
+                    var userId = payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"]
+                              || payload["nameid"] || payload["sub"] || payload["Id"];
                     if (userId) {
                         $.ajax({
                             url: apiBaseUrl + "/User/GetById/" + userId,
@@ -200,13 +223,9 @@
                             success: function (data) {
                                 var photo = data.photoUrl || data.PhotoUrl;
                                 if (photo) {
-                                    var imgPath = "";
-                                    // 💡 SENİOR DÜZELTME: Temiz blok ve girintiler
-                                    if (photo.startsWith("undraw")) {
-                                        imgPath = "/sbadmin/img/" + photo;
-                                    } else {
-                                        imgPath = apiBaseUrl.replace("/api", "") + "/Files/UserPhotos/" + photo;
-                                    }
+                                    var imgPath = photo.startsWith("undraw")
+                                        ? "/sbadmin/img/" + photo
+                                        : apiBaseUrl.replace("/api", "") + "/Files/UserPhotos/" + photo;
                                     $("#topProfileImage").attr("src", imgPath);
                                 }
                             }
