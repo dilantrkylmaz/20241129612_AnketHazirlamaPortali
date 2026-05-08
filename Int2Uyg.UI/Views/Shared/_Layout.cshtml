@@ -23,7 +23,8 @@
 
         <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
 
-            <a class="sidebar-brand d-flex align-items-center justify-content-center" asp-controller="Home" asp-action="Index">
+            <!-- BRAND -> go to admin dashboard -->
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/admin">
                 <div class="sidebar-brand-icon rotate-n-15">
                     <i class="fas fa-clipboard-list"></i>
                 </div>
@@ -33,7 +34,8 @@
             <hr class="sidebar-divider my-0">
 
             <li class="nav-item">
-                <a class="nav-link" asp-controller="Home" asp-action="Index">
+                <!-- Admin home -->
+                <a class="nav-link" href="/admin">
                     <i class="fas fa-fw fa-home"></i>
                     <span>Ana Sayfa</span>
                 </a>
@@ -42,21 +44,24 @@
             <hr class="sidebar-divider">
 
             <li class="nav-item" id="menuCategories">
-                <a class="nav-link" href="/Categories">
+                <!-- Admin categories -->
+                <a class="nav-link" href="/admin/categories">
                     <i class="fas fa-fw fa-folder"></i>
                     <span>Kategoriler</span>
                 </a>
             </li>
 
             <li class="nav-item" id="menuSurveys">
-                <a class="nav-link" href="/Surveys">
+                <!-- Admin surveys -->
+                <a class="nav-link" href="/admin/surveys">
                     <i class="fas fa-fw fa-list-alt"></i>
                     <span>Anket Yönetimi</span>
                 </a>
             </li>
 
             <li class="nav-item">
-                <a class="nav-link" href="/Profile">
+                <!-- Link to user profile (user area) -->
+                <a class="nav-link" href="/user/profile">
                     <i class="fas fa-fw fa-user"></i>
                     <span>Profilim</span>
                 </a>
@@ -64,7 +69,7 @@
 
             <!-- ✅ NEW: Sadece Admin'e gösterilen Kullanıcı Yönetimi menüsü -->
             <li class="nav-item" id="menuUserManagement" style="display:none;">
-                <a class="nav-link" href="/UserManagement">
+                <a class="nav-link" href="/admin/users">
                     <i class="fas fa-fw fa-users-cog"></i>
                     <span>Kullanıcı Yönetimi</span>
                 </a>
@@ -100,11 +105,11 @@
                             </a>
 
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
-                                <a class="dropdown-item" href="/Profile">
+                                <a class="dropdown-item" href="/user/profile">
                                     <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i> Profilim
                                 </a>
                                 <!-- Admin menüsü dropdown'da da göster -->
-                                <a class="dropdown-item" href="/UserManagement" id="dropdownUserMgmt" style="display:none;">
+                                <a class="dropdown-item" href="/admin/users" id="dropdownUserMgmt" style="display:none;">
                                     <i class="fas fa-users-cog fa-sm fa-fw mr-2 text-gray-400"></i> Kullanıcı Yönetimi
                                 </a>
                                 <div class="dropdown-divider"></div>

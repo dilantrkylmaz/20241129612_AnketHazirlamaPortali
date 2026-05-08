@@ -1,100 +1,190 @@
 ﻿@{
-    Layout = null;
+    ViewData["Title"] = "Giriş Yap";
+    Layout = "~/Views/Shared/_LayoutPublic.cshtml";
 }
 
-<!DOCTYPE html>
-<html lang="tr">
+<style>
+    .login-container {
+        max-width: 450px;
+        margin: 2rem auto;
+        background: white;
+        border-radius: 20px;
+        padding: 3rem 2rem;
+        box-shadow: 0 12px 48px rgba(108, 99, 255, 0.12);
+        border: 1px solid rgba(108, 99, 255, 0.08);
+    }
 
-<head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Anket Portalı | Giriş Yap</title>
+    .login-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
 
-    <link href="~/sbadmin/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
-    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
-    <link href="~/sbadmin/css/sb-admin-2.min.css" rel="stylesheet">
+    .login-header h1 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #1a1a2e;
+        margin-bottom: 0.5rem;
+    }
 
-    <style>
-        /* Tam Projene Uygun Veri Analizi ve Anket Konseptli Yüksek Kalite Görsel */
-        .bg-login-image-survey {
-            background: url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80');
-            background-size: cover;
-            background-position: center;
-        }
-    </style>
-</head>
+    .login-header p {
+        color: #6b7280;
+        font-size: 0.95rem;
+    }
 
-<body class="bg-gradient-primary">
+    .form-group {
+        margin-bottom: 1.5rem;
+        position: relative;
+    }
 
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-xl-10 col-lg-12 col-md-9">
-                <div class="card o-hidden border-0 shadow-lg my-5">
-                    <div class="card-body p-0">
-                        <div class="row">
-                            <div class="col-lg-6 d-none d-lg-block bg-login-image-survey"></div>
-                            <div class="col-lg-6">
-                                <div class="p-5">
-                                    <div class="text-center">
-                                        <h1 class="h4 text-gray-900 mb-4 font-weight-bold">Anket Portalı'na Hoş Geldiniz!</h1>
-                                        <p class="mb-4">Yönetim paneline erişmek için lütfen giriş yapın.</p>
-                                    </div>
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        color: #1a1a2e;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
 
-                                    <form class="user">
-                                        <div class="form-group">
-                                            <input type="text" class="form-control form-control-user"
-                                                   id="txtUserName" placeholder="Kullanıcı Adı">
-                                        </div>
+    .form-group input {
+        width: 100%;
+        padding: 12px 14px;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+        font-family: 'Sora', sans-serif;
+    }
 
-                                        <div class="form-group" style="position: relative;">
-                                            <input type="password" class="form-control form-control-user"
-                                                   id="txtPassword" placeholder="Parola" style="padding-right: 45px;">
-                                            <i class="fas fa-eye" id="togglePassword"
-                                               style="position: absolute; right: 18px; top: 16px; cursor: pointer; color: #b7b9cc;"></i>
-                                        </div>
+    .form-group input:focus {
+        outline: none;
+        border-color: #6c63ff;
+        box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.08);
+    }
 
-                                        <button type="button" id="btnLogin" class="btn btn-primary btn-user btn-block font-weight-bold">
-                                            Giriş Yap
-                                        </button>
-                                    </form>
+    .form-group.password-group {
+        position: relative;
+    }
 
-                                    <hr>
+    .toggle-password {
+        position: absolute;
+        right: 14px;
+        top: 43px;
+        cursor: pointer;
+        color: #6b7280;
+        transition: color 0.2s;
+    }
 
-                                    <div class="text-center mt-3">
-                                        <a class="small font-weight-bold" href="/ForgotPassword" style="color: #e74a3b;">
-                                            <i class="fas fa-key"></i> Şifremi Unuttum
-                                        </a>
-                                    </div>
-                                    <div class="text-center mt-2">
-                                        <a class="small font-weight-bold" href="/Register" style="color: #4e73df;">
-                                            <i class="fas fa-user-plus"></i> Hesabınız yok mu? Yeni Üye Kaydı Oluşturun!
-                                        </a>
-                                    </div>
+    .toggle-password:hover {
+        color: #6c63ff;
+    }
 
-                                    <div id="divResult" style="display:none;"></div>
+    .btn-login {
+        width: 100%;
+        background: linear-gradient(135deg, #6c63ff 0%, #5a52d5 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 12px;
+        font-size: 0.95rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin-top: 1rem;
+        font-family: 'Sora', sans-serif;
+    }
 
-                                    <div class="text-center mt-4">
-                                        <small class="text-muted">Anket Portalı &copy; @DateTime.Now.Year</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    .btn-login:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(108, 99, 255, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+
+    .login-footer {
+        text-align: center;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .login-footer a {
+        color: #6c63ff;
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.2s;
+        font-size: 0.9rem;
+    }
+
+    .login-footer a:hover {
+        color: #5a52d5;
+    }
+
+    .login-footer p {
+        color: #6b7280;
+        margin: 0.5rem 0;
+        font-size: 0.9rem;
+    }
+
+    .alert {
+        border-radius: 10px;
+        border: none;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+    }
+
+    .alert-success {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .alert-danger {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+</style>
+
+<div class="login-container">
+    <div class="login-header">
+        <h1>Giriş Yap</h1>
+        <p>Anket portalına erişmek için oturum açın</p>
     </div>
 
-    <script src="~/sbadmin/vendor/jquery/jquery.min.js"></script>
-    <script src="~/sbadmin/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <script src="~/sbadmin/js/sb-admin-2.min.js"></script>
+    <form id="loginForm">
+        <div class="form-group">
+            <label for="txtUserName">Kullanıcı Adı</label>
+            <input type="text" class="form-control" id="txtUserName" placeholder="Kullanıcı adınızı girin" required>
+        </div>
 
+        <div class="form-group password-group">
+            <label for="txtPassword">Parola</label>
+            <input type="password" class="form-control" id="txtPassword" placeholder="Parolanızı girin" required>
+            <i class="fas fa-eye toggle-password" id="togglePassword"></i>
+        </div>
+
+        <button type="button" id="btnLogin" class="btn-login">
+            <i class="fas fa-sign-in-alt mr-2"></i> Giriş Yap
+        </button>
+    </form>
+
+    <div id="divResult"></div>
+
+    <div class="login-footer">
+        <p>Henüz hesabınız yok mu?</p>
+        <a href="/register">
+            <i class="fas fa-user-plus mr-1"></i> Yeni Üye Kaydı Oluştur
+        </a>
+        <p style="margin-top: 1rem;">
+            <a href="/forgot-password">Şifremi Unuttum?</a>
+        </p>
+    </div>
+</div>
+
+@section Scripts {
     <script>
         $(document).ready(function () {
-            var apiBaseUrl = "@ViewBag.ApiBaseUrl";
+            var apiBaseUrl = "https://localhost:7258/api";
 
-            // Göz İkonu (Şifre Göster/Gizle) Mantığı
+            // Göz İkonu (Şifre Göster/Gizle)
             $("#togglePassword").click(function () {
                 var passwordInput = $("#txtPassword");
                 var icon = $(this);
@@ -110,13 +200,15 @@
 
             // Giriş İşlemi
             $("#btnLogin").click(function () {
-                var userName = $("#txtUserName").val();
+                var userName = $("#txtUserName").val().trim();
                 var password = $("#txtPassword").val();
 
                 if (!userName || !password) {
                     showResult("Kullanıcı adı ve şifre gereklidir!", "danger");
                     return;
                 }
+
+                $(this).prop("disabled", true).html('<i class="fas fa-spinner fa-spin mr-2"></i> Yükleniyor...');
 
                 var loginData = {
                     UserName: userName,
@@ -132,28 +224,40 @@
                         if (response.status) {
                             localStorage.setItem("token", response.message);
                             showResult("Giriş Başarılı! Yönlendiriliyorsunuz...", "success");
-                            setTimeout(function() {
-                                window.location.href = "/Categories";
+                            setTimeout(function () {
+                                // Redirect based on role
+                                try {
+                                    function parseJwt(t) {
+                                        var b = t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+                                        return JSON.parse(decodeURIComponent(atob(b).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
+                                    }
+                                    var payload = parseJwt(response.message);
+                                    var roles = payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+                                    var isAdmin = roles && (roles === "Admin" || roles.includes("Admin"));
+                                    window.location.href = isAdmin ? "/admin" : "/user";
+                                } catch (e) {
+                                    window.location.href = "/user";
+                                }
                             }, 1000);
                         } else {
                             showResult(response.message, "danger");
+                            $("#btnLogin").prop("disabled", false).html('<i class="fas fa-sign-in-alt mr-2"></i> Giriş Yap');
                         }
                     },
                     error: function () {
                         showResult("Sunucu bağlantı hatası!", "danger");
+                        $("#btnLogin").prop("disabled", false).html('<i class="fas fa-sign-in-alt mr-2"></i> Giriş Yap');
                     }
                 });
             });
 
             function showResult(message, type) {
                 $("#divResult")
-                    .fadeIn()
                     .removeClass()
-                    .addClass("alert alert-" + type + " mt-3 text-center")
+                    .addClass("alert alert-" + type)
                     .html(message)
-                    .fadeOut(4000);
+                    .fadeIn();
             }
         });
     </script>
-</body>
-</html>
+}

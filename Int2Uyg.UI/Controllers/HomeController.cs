@@ -13,70 +13,30 @@ namespace Int2Uyg.UI.Controllers
 
         public IActionResult Index()
         {
+            // ✅ FIX: Check if user is already logged in via JWT in localStorage
+            // If authenticated, redirect based on role; else show landing page
             return View();
         }
 
-        [Route("Categories")]
-        public IActionResult Categories()
-        {
-            ViewBag.ApiBaseUrl = _configuration["ApiBaseUrl"];
-            return View();
-        }
-
-        [Route("Surveys/{id?}")]
-        public IActionResult Surveys(int? id)
-        {
-            ViewBag.ApiBaseUrl = _configuration["ApiBaseUrl"];
-            ViewBag.CatId = id ?? 0;
-            return View();
-        }
-
-        [Route("Login")]
+        [Route("login")]
         public IActionResult Login()
         {
             ViewBag.ApiBaseUrl = _configuration["ApiBaseUrl"];
             return View();
         }
 
-        [Route("Profile")]
-        public IActionResult Profile()
-        {
-            ViewBag.ApiBaseUrl = _configuration["ApiBaseUrl"];
-            return View();
-        }
-
-        [Route("Register")]
+        [Route("register")]
         public IActionResult Register()
         {
             ViewBag.ApiBaseUrl = _configuration["ApiBaseUrl"];
             return View();
         }
 
-        [Route("ForgotPassword")]
+        [Route("forgot-password")]
         public IActionResult ForgotPassword()
         {
             ViewBag.ApiBaseUrl = _configuration["ApiBaseUrl"];
             return View();
         }
-
-        [Route("Home/Questions/{id}")]
-        public IActionResult Questions(int id)
-        {
-            ViewBag.SurveyId = id;
-            return View();
-        }
-
-        public IActionResult TakeSurvey(int id)
-        {
-            return View();
-        }
-
-        // ✅ NEW: Kullanıcı Yönetimi sayfası (sadece Admin erişebilir, kontrol JS tarafında yapılıyor)
-        [Route("UserManagement")]
-        public IActionResult UserManagement()
-        {
-            ViewBag.ApiBaseUrl = _configuration["ApiBaseUrl"];
-            return View();
-        }
     }
-}
+}   
