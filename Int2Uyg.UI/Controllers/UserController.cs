@@ -4,11 +4,11 @@ namespace Int2Uyg.UI.Controllers
 {
     // ✅ User-facing pages - accessible to all logged-in users
     [Route("user")]
-    public class UserPanelController : Controller
+    public class UserController : Controller
     {
         private readonly IConfiguration _configuration;
 
-        public UserPanelController(IConfiguration configuration)
+        public UserController(IConfiguration configuration)
         {
             _configuration = configuration;
         }
