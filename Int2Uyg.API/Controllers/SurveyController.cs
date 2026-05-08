@@ -45,14 +45,21 @@ namespace Int2Uyg.API.Controllers
         {
             var survey = _mapper.Map<Survey>(dto);
 
-            // 📸 RESİM İŞLEME VE 400 HATASI KORUMASI
             if (!string.IsNullOrEmpty(dto.PhotoUrl) && dto.PhotoUrl.Contains("base64"))
             {
-                survey.PhotoUrl = SaveImage(dto.PhotoUrl);
+                // Resim base64 verisi geldi → kaydet
+                survey.PhotoUrl = SaveImage(dto.PhotoUrl) ?? string.Empty;
             }
             else
             {
-                survey.PhotoUrl = null; // "NO_IMAGE" gelirse boş kaydet ki hata vermesin
+                // ✅ FIX: null yerine boş string — PhotoUrl sütunu NOT NULL
+                survey.PhotoUrl = string.Empty;
+            }
+
+            // Description null/boş gelirse varsayılan değer ata
+            if (string.IsNullOrWhiteSpace(survey.Description))
+            {
+                survey.Description = "Açıklama belirtilmedi.";
             }
 
             survey.Category = null;
@@ -66,7 +73,6 @@ namespace Int2Uyg.API.Controllers
         [Authorize]
         public async Task<ResultDto> Update(SurveyDto dto)
         {
-            // 🛡️ EF Core Çakışma ve İzleme Hatasını Önleyen Kod
             var existSurvey = await _surveyRepository.Where(s => s.Id == dto.Id).AsNoTracking().FirstOrDefaultAsync();
 
             if (existSurvey == null)
@@ -80,15 +86,23 @@ namespace Int2Uyg.API.Controllers
 
             if (dto.PhotoUrl == "DELETE")
             {
-                survey.PhotoUrl = null;
+                // ✅ FIX: Resim silindi → null yerine boş string
+                survey.PhotoUrl = string.Empty;
             }
             else if (!string.IsNullOrEmpty(dto.PhotoUrl) && dto.PhotoUrl.Contains("base64"))
             {
-                survey.PhotoUrl = SaveImage(dto.PhotoUrl);
+                survey.PhotoUrl = SaveImage(dto.PhotoUrl) ?? string.Empty;
             }
             else
             {
-                survey.PhotoUrl = existSurvey.PhotoUrl; // Resim değişmediyse eskiyi koru
+                // Resim değişmediyse eskiyi koru; eski değer null ise boş string
+                survey.PhotoUrl = existSurvey.PhotoUrl ?? string.Empty;
+            }
+
+            // Description null/boş gelirse varsayılan değer ata
+            if (string.IsNullOrWhiteSpace(survey.Description))
+            {
+                survey.Description = "Açıklama belirtilmedi.";
             }
 
             survey.Category = null;
@@ -99,13 +113,16 @@ namespace Int2Uyg.API.Controllers
             return _result;
         }
 
-        private string SaveImage(string base64String)
+        private string? SaveImage(string base64String)
         {
             try
             {
-                // wwwroot klasörünü garantili olarak bulur
-                string folder = Path.Combine(_env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"), "Files", "Surveys");
-                if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+                string folder = Path.Combine(
+                    _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"),
+                    "Files", "Surveys");
+
+                if (!Directory.Exists(folder))
+                    Directory.CreateDirectory(folder);
 
                 string fileName = Guid.NewGuid().ToString() + ".jpg";
                 string fullPath = Path.Combine(folder, fileName);
@@ -116,7 +133,10 @@ namespace Int2Uyg.API.Controllers
 
                 return fileName;
             }
-            catch { return null; }
+            catch
+            {
+                return null;
+            }
         }
 
         [HttpDelete("{id}")]
