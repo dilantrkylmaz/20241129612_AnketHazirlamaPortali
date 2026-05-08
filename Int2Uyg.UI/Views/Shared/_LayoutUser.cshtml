@@ -1,0 +1,415 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>@ViewData["Title"] - Anket Portalı</title>
+
+    <link href="~/sbadmin/vendor/fontawesome-free/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #6c63ff;
+            --primary-dark: #5a52d5;
+            --primary-light: #ede9ff;
+            --accent: #ff6584;
+            --dark: #1a1a2e;
+            --text: #2d2d3a;
+            --muted: #6b7280;
+            --bg: #f8f7ff;
+            --white: #ffffff;
+            --card-shadow: 0 4px 24px rgba(108,99,255,0.08);
+            --radius: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── NAVBAR ── */
+        .user-navbar {
+            background: rgba(255,255,255,0.92);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(108,99,255,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            padding: 0 2rem;
+            height: 68px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 16px rgba(108,99,255,0.06);
+        }
+
+        .navbar-brand-user {
+            font-family: 'Sora', sans-serif;
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+            .navbar-brand-user .brand-icon {
+                width: 36px;
+                height: 36px;
+                background: linear-gradient(135deg, var(--primary), var(--accent));
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 14px;
+            }
+
+        .navbar-links {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            list-style: none;
+        }
+
+            .navbar-links a {
+                font-family: 'DM Sans', sans-serif;
+                font-size: 0.875rem;
+                font-weight: 500;
+                color: var(--muted);
+                text-decoration: none;
+                padding: 8px 16px;
+                border-radius: 10px;
+                transition: all 0.2s;
+            }
+
+                .navbar-links a:hover {
+                    color: var(--primary);
+                    background: var(--primary-light);
+                }
+
+                .navbar-links a.active {
+                    color: var(--primary);
+                    background: var(--primary-light);
+                }
+
+        .navbar-user-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--primary-light);
+            border: none;
+            border-radius: 12px;
+            padding: 6px 14px 6px 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+            .user-avatar-btn:hover {
+                background: #ddd8ff;
+                transform: translateY(-1px);
+            }
+
+            .user-avatar-btn img {
+                width: 30px;
+                height: 30px;
+                border-radius: 8px;
+                object-fit: cover;
+            }
+
+            .user-avatar-btn span {
+                font-size: 0.8rem;
+                font-weight: 600;
+                color: var(--primary);
+                font-family: 'Sora', sans-serif;
+            }
+
+        .btn-logout-nav {
+            background: none;
+            border: 1.5px solid rgba(108,99,255,0.3);
+            color: var(--muted);
+            border-radius: 10px;
+            padding: 6px 14px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+            .btn-logout-nav:hover {
+                border-color: var(--accent);
+                color: var(--accent);
+            }
+
+        /* ── MAIN CONTENT ── */
+        .user-main {
+            flex: 1;
+            padding: 2rem;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* ── PAGE HEADER ── */
+        .page-header-user {
+            margin-bottom: 2rem;
+        }
+
+            .page-header-user h1 {
+                font-family: 'Sora', sans-serif;
+                font-size: 1.75rem;
+                font-weight: 700;
+                color: var(--dark);
+            }
+
+            .page-header-user p {
+                color: var(--muted);
+                font-size: 0.9rem;
+                margin-top: 4px;
+            }
+
+        /* ── CARDS ── */
+        .card-user {
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--card-shadow);
+            border: 1px solid rgba(108,99,255,0.06);
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+            .card-user:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 32px rgba(108,99,255,0.14);
+            }
+
+        /* ── BUTTONS ── */
+        .btn-primary-user {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 10px 24px;
+            font-family: 'Sora', sans-serif;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+            .btn-primary-user:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(108,99,255,0.35);
+                color: white;
+            }
+
+        /* ── BADGES ── */
+        .badge-user {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            font-family: 'Sora', sans-serif;
+        }
+
+        .badge-active {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-inactive {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* ── FOOTER ── */
+        .user-footer {
+            background: var(--white);
+            border-top: 1px solid rgba(108,99,255,0.08);
+            padding: 1.25rem 2rem;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--muted);
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        /* ── DECORATIVE BG ── */
+        .bg-blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.06;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .bg-blob-1 {
+            width: 400px;
+            height: 400px;
+            background: var(--primary);
+            top: -100px;
+            right: -100px;
+        }
+
+        .bg-blob-2 {
+            width: 300px;
+            height: 300px;
+            background: var(--accent);
+            bottom: 100px;
+            left: -80px;
+        }
+
+        /* ── RESPONSIVE ── */
+        @@media (max-width: 768px) {
+            .user-navbar {
+                padding: 0 1rem;
+            }
+
+            .navbar-links {
+                display: none;
+            }
+
+            .user-main {
+                padding: 1rem;
+            }
+        }
+    </style>
+
+    @RenderSection("Styles", required: false)
+</head>
+
+<body>
+    <!-- Decorative blobs -->
+    <div class="bg-blob bg-blob-1"></div>
+    <div class="bg-blob bg-blob-2"></div>
+
+    <!-- Navbar -->
+    <nav class="user-navbar">
+        <a class="navbar-brand-user" href="/user">
+            <div class="brand-icon"><i class="fas fa-clipboard-list"></i></div>
+            Anket Portalı
+        </a>
+
+        <ul class="navbar-links">
+            <li><a href="/user" id="navHome">Ana Sayfa</a></li>
+            <li><a href="/user/browse" id="navBrowse">Anketler</a></li>
+            <li><a href="/user/profile" id="navProfile">Profilim</a></li>
+        </ul>
+
+        <div class="navbar-user-area">
+            <a class="user-avatar-btn" href="/user/profile">
+                <img src="/sbadmin/img/undraw_profile.svg" id="topUserPhoto"
+                     onerror="this.src='/sbadmin/img/undraw_profile.svg'">
+                <span id="topUserName">...</span>
+            </a>
+            <button class="btn-logout-nav" id="btnUserLogout">
+                <i class="fas fa-sign-out-alt mr-1"></i> Çıkış
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main content -->
+    <main class="user-main" style="position: relative; z-index: 1;">
+        @RenderBody()
+    </main>
+
+    <!-- Footer -->
+    <footer class="user-footer">
+        Anket Portalı &copy; @DateTime.Now.Year — Tüm hakları saklıdır.
+    </footer>
+
+    <script src="~/sbadmin/vendor/jquery/jquery.min.js"></script>
+    <script src="~/sbadmin/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        function parseJwt(token) {
+            try {
+                var base64Url = token.split('.')[1];
+                var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                return JSON.parse(decodeURIComponent(window.atob(base64).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join('')));
+            } catch (e) { return null; }
+        }
+
+        function toTitleCase(str) {
+            if (!str) return "";
+            return str.split(' ').map(function(w) {
+                return w.charAt(0).toLocaleUpperCase('tr-TR') + w.slice(1).toLocaleLowerCase('tr-TR');
+            }).join(' ');
+        }
+
+        $(document).ready(function () {
+            var token = localStorage.getItem("token");
+            var apiBaseUrl = "https://localhost:7258/api";
+            var path = window.location.pathname.toLowerCase();
+
+            if (!token) { window.location.href = "/Login"; return; }
+
+            var payload = parseJwt(token);
+            if (payload) {
+                var rawName = payload["FullName"]
+                    || payload["unique_name"]
+                    || payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"]
+                    || "Kullanıcı";
+                $("#topUserName").text(toTitleCase(rawName));
+
+                var userId = payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"]
+                          || payload["nameid"] || payload["sub"];
+                if (userId) {
+                    $.ajax({
+                        url: apiBaseUrl + "/User/GetById/" + userId,
+                        headers: { "Authorization": "Bearer " + token },
+                        success: function (data) {
+                            var photo = data.photoUrl || data.PhotoUrl;
+                            if (photo && !photo.startsWith("undraw")) {
+                                $("#topUserPhoto").attr("src", apiBaseUrl.replace("/api","") + "/Files/UserPhotos/" + photo);
+                            }
+                        }
+                    });
+                }
+            }
+
+            // Active nav link
+            if (path === "/user" || path === "/user/") $("#navHome").addClass("active");
+            else if (path.includes("/user/browse")) $("#navBrowse").addClass("active");
+            else if (path.includes("/user/profile")) $("#navProfile").addClass("active");
+
+            $("#btnUserLogout").click(function () {
+                localStorage.removeItem("token");
+                window.location.href = "/Login";
+            });
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,329 @@
+﻿@{
+    ViewData["Title"] = "Ana Sayfa";
+    Layout = "~/Views/Shared/_LayoutUser.cshtml";
+}
+
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #6c63ff 0%, #ff6584 100%);
+        border-radius: 24px;
+        padding: 3rem 2.5rem;
+        color: white;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 400px;
+            height: 400px;
+            background: rgba(255,255,255,0.07);
+            border-radius: 50%;
+        }
+
+        .hero-section h1 {
+            font-family: 'Sora', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-section p {
+            opacity: 0.85;
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+    .hero-btn {
+        background: white;
+        color: #6c63ff;
+        border: none;
+        border-radius: 12px;
+        padding: 12px 28px;
+        font-family: 'Sora', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    }
+
+        .hero-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            color: #5a52d5;
+        }
+
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.25rem;
+        box-shadow: 0 4px 24px rgba(108,99,255,0.07);
+        border: 1px solid rgba(108,99,255,0.06);
+        text-align: center;
+    }
+
+        .stat-card .stat-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.75rem;
+            font-size: 18px;
+        }
+
+        .stat-card .stat-number {
+            font-family: 'Sora', sans-serif;
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+
+        .stat-card .stat-label {
+            font-size: 0.78rem;
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+    .section-title {
+        font-family: 'Sora', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1a1a2e;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .survey-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .survey-card {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 24px rgba(108,99,255,0.07);
+        border: 1px solid rgba(108,99,255,0.06);
+        transition: all 0.2s;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+
+        .survey-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(108,99,255,0.15);
+            color: inherit;
+            text-decoration: none;
+        }
+
+    .survey-card-img {
+        width: 100%;
+        height: 140px;
+        object-fit: cover;
+        background: linear-gradient(135deg, #ede9ff, #fce4ec);
+    }
+
+    .survey-card-body {
+        padding: 1rem 1.25rem;
+    }
+
+    .survey-card-title {
+        font-family: 'Sora', sans-serif;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #1a1a2e;
+        margin-bottom: 4px;
+    }
+
+    .survey-card-cat {
+        font-size: 0.78rem;
+        color: #6b7280;
+    }
+
+    .survey-card-footer {
+        padding: 0.75rem 1.25rem;
+        border-top: 1px solid rgba(108,99,255,0.06);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .take-survey-btn {
+        font-family: 'Sora', sans-serif;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: #6c63ff;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+        .take-survey-btn:hover {
+            color: #5a52d5;
+        }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #6b7280;
+    }
+
+        .empty-state i {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            opacity: 0.4;
+        }
+</style>
+
+<!-- Hero -->
+<div class="hero-section">
+    <h1>Merhaba, <span id="heroUserName">...</span>! 👋</h1>
+    <p>Katılmak istediğin anketleri keşfet ve görüşlerini paylaş.</p>
+    <a href="/user/browse" class="hero-btn">
+        <i class="fas fa-search"></i> Anketleri Keşfet
+    </a>
+</div>
+
+<!-- Stats -->
+<div class="stats-row">
+    <div class="stat-card">
+        <div class="stat-icon" style="background:#ede9ff;">
+            <i class="fas fa-poll" style="color:#6c63ff;"></i>
+        </div>
+        <div class="stat-number" id="statTotal">—</div>
+        <div class="stat-label">Toplam Anket</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background:#d1fae5;">
+            <i class="fas fa-check-circle" style="color:#059669;"></i>
+        </div>
+        <div class="stat-number" id="statActive">—</div>
+        <div class="stat-label">Aktif Anket</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background:#fce7f3;">
+            <i class="fas fa-folder" style="color:#db2777;"></i>
+        </div>
+        <div class="stat-number" id="statCategories">—</div>
+        <div class="stat-label">Kategori</div>
+    </div>
+</div>
+
+<!-- Recent surveys -->
+<div class="section-title">
+    <i class="fas fa-clock text-primary"></i> Son Eklenen Anketler
+</div>
+<div class="survey-grid" id="recentSurveys">
+    <div class="empty-state" style="grid-column:1/-1;">
+        <i class="fas fa-spinner fa-spin"></i>
+        <p>Yükleniyor...</p>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            var api = "https://localhost:7258/api";
+            var token = localStorage.getItem("token");
+
+            function parseJwtLocal(t) {
+                try {
+                    var b = t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+                    return JSON.parse(decodeURIComponent(atob(b).split('').map(c=>'%'+('00'+c.charCodeAt(0).toString(16)).slice(-2)).join('')));
+                } catch(e){ return null; }
+            }
+
+            function titleCase(s) {
+                if(!s) return "";
+                return s.split(' ').map(w=>w.charAt(0).toLocaleUpperCase('tr-TR')+w.slice(1).toLocaleLowerCase('tr-TR')).join(' ');
+            }
+
+            var payload = parseJwtLocal(token);
+            if (payload) {
+                var name = payload["FullName"] || payload["unique_name"]
+                    || payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] || "Kullanıcı";
+                $("#heroUserName").text(titleCase(name));
+            }
+
+            $.ajax({
+                url: api + "/Survey/List", type: "GET",
+                headers: { "Authorization": "Bearer " + token },
+                success: function(surveys) {
+                    var active = surveys.filter(s => s.isActive || s.IsActive);
+                    $("#statTotal").text(surveys.length);
+                    $("#statActive").text(active.length);
+
+                    var recent = surveys.slice(0, 6);
+                    var html = "";
+                    if (recent.length === 0) {
+                        html = '<div class="empty-state" style="grid-column:1/-1;"><i class="fas fa-clipboard"></i><p>Henüz anket yok.</p></div>';
+                    } else {
+                        $.each(recent, function(i, s) {
+                            var title = titleCase(s.title || s.Title || "—");
+                            var cat = s.categoryName || s.CategoryName || "—";
+                            var id = s.id || s.Id;
+                            var photo = s.photoUrl || s.PhotoUrl;
+                            var imgSrc = (photo && photo !== "")
+                                ? api.replace("/api","") + "/Files/Surveys/" + photo
+                                : "";
+                            var imgTag = imgSrc
+                                ? '<img class="survey-card-img" src="' + imgSrc + '" onerror="this.style.background=\'linear-gradient(135deg,#ede9ff,#fce4ec)\';this.src=\'\';">'
+                                : '<div class="survey-card-img" style="display:flex;align-items:center;justify-content:center;"><i class="fas fa-clipboard-list" style="font-size:2rem;color:#6c63ff;opacity:0.3;"></i></div>';
+
+                            var badge = (s.isActive || s.IsActive)
+                                ? '<span class="badge-user badge-active"><i class="fas fa-circle" style="font-size:6px;"></i> Yayında</span>'
+                                : '<span class="badge-user badge-inactive">Pasif</span>';
+
+                            html += '<a class="survey-card" href="/user/survey/' + id + '">' +
+                                imgTag +
+                                '<div class="survey-card-body">' +
+                                    '<div class="survey-card-title">' + title + '</div>' +
+                                    '<div class="survey-card-cat"><i class="fas fa-folder mr-1"></i>' + cat + '</div>' +
+                                '</div>' +
+                                '<div class="survey-card-footer">' +
+                                    badge +
+                                    '<span class="take-survey-btn">Ankete Katıl <i class="fas fa-arrow-right"></i></span>' +
+                                '</div>' +
+                                '</a>';
+                        });
+                    }
+                    $("#recentSurveys").html(html);
+                },
+                error: function() {
+                    $("#recentSurveys").html('<div class="empty-state" style="grid-column:1/-1;"><i class="fas fa-exclamation-circle text-danger"></i><p>Anketler yüklenemedi.</p></div>');
+                }
+            });
+
+            $.ajax({
+                url: api + "/Category/List", type: "GET",
+                headers: { "Authorization": "Bearer " + token },
+                success: function(cats) { $("#statCategories").text(cats.length); }
+            });
+        });
+    </script>
+}
