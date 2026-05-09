@@ -17,9 +17,11 @@ namespace Int2Uyg.API.Controllers
         private readonly CategoryRepository _categoryRepository;
         private readonly SurveyRepository _surveyRepository;
         private readonly IMapper _mapper;
-        ResultDto _result = new ResultDto();
 
-        public CategoryController(CategoryRepository categoryRepository, SurveyRepository surveyRepository, IMapper mapper)
+        public CategoryController(
+            CategoryRepository categoryRepository,
+            SurveyRepository surveyRepository,
+            IMapper mapper)
         {
             _categoryRepository = categoryRepository;
             _surveyRepository = surveyRepository;
@@ -31,14 +33,14 @@ namespace Int2Uyg.API.Controllers
         public async Task<List<CategoryDto>> List()
         {
             var categories = await _categoryRepository.GetAllAsync();
-
             var sortedCategories = categories.OrderByDescending(c => c.Id).ToList();
-
             var categoryDtos = _mapper.Map<List<CategoryDto>>(sortedCategories);
 
             foreach (var cat in categoryDtos)
             {
-                cat.SurveyCount = await _surveyRepository.Where(s => s.CategoryId == cat.Id).CountAsync();
+                cat.SurveyCount = await _surveyRepository
+                    .Where(s => s.CategoryId == cat.Id)
+                    .CountAsync();
             }
 
             return categoryDtos;
@@ -54,9 +56,10 @@ namespace Int2Uyg.API.Controllers
         [HttpGet("{id}/Surveys")]
         public async Task<List<SurveyDto>> SurveyList(int id)
         {
-            var surveysQuery = _surveyRepository.Where(s => s.CategoryId == id)
-                                                .Include(i => i.Category)
-                                                .Include(i => i.User);
+            var surveysQuery = _surveyRepository
+                .Where(s => s.CategoryId == id)
+                .Include(i => i.Category)
+                .Include(i => i.User);
 
             var surveys = await surveysQuery.ToListAsync();
             var surveyDtos = _mapper.Map<List<SurveyDto>>(surveys);
@@ -70,74 +73,106 @@ namespace Int2Uyg.API.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<ResultDto> Add(CategoryDto dto)
         {
+            // ✅ Her istek için yeni ResultDto (thread‑safe)
+            var result = new ResultDto();
+
+            // ✅ Boş ad kontrolü
+            if (string.IsNullOrWhiteSpace(dto.Name))
+            {
+                result.Status = false;
+                result.Message = "Kategori adı boş olamaz!";
+                return result;
+            }
+
             var categories = await _categoryRepository.GetAllAsync();
 
-            if (categories.Any(c => c.Name != null && c.Name.ToLower() == dto.Name.ToLower()))
+            // ✅ Null‑safe karşılaştırma
+            if (categories.Any(c =>
+                c.Name != null &&
+                c.Name.Equals(dto.Name, StringComparison.OrdinalIgnoreCase)))
             {
-                _result.Status = false;
-                _result.Message = "Bu isimde bir kategori zaten kayıtlıdır!";
-                return _result;
+                result.Status = false;
+                result.Message = "Bu isimde bir kategori zaten kayıtlıdır!";
+                return result;
             }
 
             var category = _mapper.Map<Category>(dto);
             await _categoryRepository.AddAsync(category);
 
-            _result.Status = true;
-            _result.Message = "Kategori başarıyla eklendi.";
-            return _result;
+            result.Status = true;
+            result.Message = "Kategori başarıyla eklendi.";
+            return result;
         }
 
         [HttpPut]
         [Authorize(Roles = "Admin")]
         public async Task<ResultDto> Update(CategoryDto dto)
         {
+            // ✅ Her istek için yeni ResultDto (thread‑safe)
+            var result = new ResultDto();
+
+            // ✅ Boş ad kontrolü
+            if (string.IsNullOrWhiteSpace(dto.Name))
+            {
+                result.Status = false;
+                result.Message = "Kategori adı boş olamaz!";
+                return result;
+            }
+
             var categories = await _categoryRepository.GetAllAsync();
 
-            if (categories.Any(c => c.Name != null && c.Name.ToLower() == dto.Name.ToLower() && c.Id != dto.Id))
+            // ✅ Null‑safe karşılaştırma (kendisi hariç aynı isim var mı?)
+            if (categories.Any(c =>
+                c.Id != dto.Id &&
+                c.Name != null &&
+                c.Name.Equals(dto.Name, StringComparison.OrdinalIgnoreCase)))
             {
-                _result.Status = false;
-                _result.Message = "Bu isimde başka bir kategori zaten mevcut!";
-                return _result;
+                result.Status = false;
+                result.Message = "Bu isimde başka bir kategori zaten mevcut!";
+                return result;
             }
 
             var orjinalKategori = categories.FirstOrDefault(c => c.Id == dto.Id);
-
-            if (orjinalKategori != null)
+            if (orjinalKategori == null)
             {
-                orjinalKategori.Name = dto.Name;
-                orjinalKategori.Description = dto.Description;
-                orjinalKategori.IsActive = dto.IsActive;
-
-                await _categoryRepository.UpdateAsync(orjinalKategori);
-                _result.Status = true;
-                _result.Message = "Kategori başarıyla güncellendi.";
-            }
-            else
-            {
-                _result.Status = false;
-                _result.Message = "Kategori bulunamadı!";
+                result.Status = false;
+                result.Message = "Kategori bulunamadı!";
+                return result;
             }
 
-            return _result;
+            orjinalKategori.Name = dto.Name;
+            orjinalKategori.Description = dto.Description;
+            orjinalKategori.IsActive = dto.IsActive;
+
+            await _categoryRepository.UpdateAsync(orjinalKategori);
+            result.Status = true;
+            result.Message = "Kategori başarıyla güncellendi.";
+            return result;
         }
 
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<ResultDto> Delete(int id)
         {
-            var hasSurveys = await _surveyRepository.Where(s => s.CategoryId == id).AnyAsync();
+            // ✅ Her istek için yeni ResultDto (thread‑safe)
+            var result = new ResultDto();
+
+            var hasSurveys = await _surveyRepository
+                .Where(s => s.CategoryId == id)
+                .AnyAsync();
 
             if (hasSurveys)
             {
-                _result.Status = false;
-                _result.Message = "Üzerinde Anket Kaydı Olan Kategori Silinemez! Lütfen önce içindeki anketleri silin.";
-                return _result;
+                result.Status = false;
+                result.Message = "Üzerinde Anket Kaydı Olan Kategori Silinemez! " +
+                                 "Lütfen önce içindeki anketleri silin.";
+                return result;
             }
 
             await _categoryRepository.DeleteAsync(id);
-            _result.Status = true;
-            _result.Message = "Kategori Silindi";
-            return _result;
+            result.Status = true;
+            result.Message = "Kategori Silindi";
+            return result;
         }
     }
 }

@@ -14,6 +14,7 @@
                         <thead>
                             <tr class="bg-light text-dark">
                                 <th>Kategori Adı</th>
+                                <th>Açıklama</th>
                                 <th>Anket Sayısı</th>
                                 <th>Durumu</th>
                                 <th id="thActions" style="width: 100px;">İşlemler</th>
@@ -37,8 +38,15 @@
                     <input type="hidden" id="txtId" />
 
                     <div class="form-group">
-                        <label class="font-weight-bold text-dark small">Kategori Adı</label>
-                        <input type="text" class="form-control" id="txtName" placeholder="Örn: İnsan Kaynakları">
+                        <label class="font-weight-bold text-dark small">Kategori Adı <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="txtName" placeholder="Örn: İnsan Kaynakları" required>
+                    </div>
+
+                    <!-- ✅ YENİ: Description alanı eklendi -->
+                    <div class="form-group">
+                        <label class="font-weight-bold text-dark small">Açıklama</label>
+                        <textarea class="form-control" id="txtDescription" rows="2"
+                                  placeholder="Kategori hakkında kısa bir açıklama yazın..."></textarea>
                     </div>
 
                     <div class="form-group">
@@ -74,14 +82,13 @@
 @section Scripts {
     <script>
         $(document).ready(function () {
-            // 🛡️ DÜZELTME 1: API Adresini diğer sayfalardaki gibi sabitledik
-                    // Layout'tan gelen global API adresini kullanıyoruz. Böylece port değişse bile bozulmaz.
-            var apiBaseUrl = API_BASE_URL;
+            // ✅ DÜZELTME: API adresini sabit olarak tanımladık
+            var apiBaseUrl = "https://localhost:7258/api";
             var token = localStorage.getItem("token");
 
             if (!token) { window.location.href = "/Login"; return; }
 
-            // Güvenli JWT Çözücü
+            // ✅ DÜZELTME: JWT decode için güvenli fonksiyon
             function parseJwtSafe(token) {
                 try {
                     var base64Url = token.split('.')[1];
@@ -97,7 +104,7 @@
             var roles = payload ? payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] : null;
             var isAdmin = roles && (roles === "Admin" || roles.includes("Admin"));
 
-            // Eğer Admin değilse (Ceren gibi normal üyeyse) form alanını gizle
+            // Eğer Admin değilse form alanını gizle
             if (!isAdmin) {
                 $("#formArea").remove();
                 $("#listArea").removeClass("col-md-8").addClass("col-md-12");
@@ -116,34 +123,59 @@
                         $("#tbCategoryList tbody").empty();
 
                         $.each(data, function (i, item) {
+                            // ✅ DÜZELTME: camelCase formatına güveniyoruz
+                            var name = item.name || "";
+                            var description = (item.description || "—");
+                            // Uzun açıklamaları kısalt
+                            var shortDesc = description.length > 50
+                                ? description.substring(0, 47) + "..."
+                                : description;
+
                             var statusBadge = item.isActive ?
                                 '<span class="badge badge-success">Yayında</span>' :
                                 '<span class="badge badge-danger">Pasif</span>';
 
                             row += "<tr>";
-                            row += "<td class='font-weight-bold text-dark'>" + toTitleCase(item.name) + "</td>";
+                            row += "<td class='font-weight-bold text-dark'>" + toTitleCase(name) + "</td>";
+                            row += "<td class='text-muted small'>" + shortDesc + "</td>";
                             row += "<td>" + (item.surveyCount || 0) + " Anket</td>";
                             row += "<td>" + statusBadge + "</td>";
 
                             if (isAdmin) {
-                                row += '<td><button class="btn btn-info btn-sm btnEdit" data-id="' + item.id + '"><i class="fa fa-edit"></i> Düzenle</button></td>';
+                                row += '<td><button class="btn btn-info btn-sm btnEdit" data-id="' + item.id + '">' +
+                                       '<i class="fa fa-edit"></i> Düzenle</button></td>';
                             }
                             row += "</tr>";
                         });
                         $("#tbCategoryList tbody").append(row);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Kategori listesi yüklenemedi:", error);
+                        $("#tbCategoryList tbody").html(
+                            '<tr><td colspan="5" class="text-center text-danger">' +
+                            'Kategoriler yüklenirken bir hata oluştu.</td></tr>'
+                        );
                     }
                 });
             }
 
-                    // 🛡️ DÜZELTME 2: Kategori Eklerken 400 Hatasını Önleyen Yapı
-                    $("#btnSave").click(function () {
-                        var name = $("#txtName").val();
-                        if (!name) { showResult("Lütfen kategori adı giriniz!", "warning"); return; }
+            // ✅ DÜZELTME: Kaydet butonu - artık description'ı formdan alıyor
+            $("#btnSave").click(function () {
+                var name = $("#txtName").val().trim();
+                var description = $("#txtDescription").val().trim();
+
+                if (!name) {
+                    showResult("Lütfen kategori adı giriniz!", "warning");
+                    $("#txtName").focus();
+                    return;
+                }
+
+                var btn = $(this);
+                btn.prop("disabled", true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Kaydediliyor...');
 
                 var categoryData = {
-                    id: parseInt(rawId), // Ekleme (Add) kısmında bu satır yoktur, sadece Update kısmında vardır.
                     name: name,
-                    description: "Açıklama belirtilmedi", // 🚀 DÜZELTME: Sadece boşluk yerine geçerli bir metin atadık.
+                    description: description || "Açıklama belirtilmedi",
                     isActive: $("#cbIsActive").is(":checked")
                 };
 
@@ -154,48 +186,90 @@
                     headers: { "Authorization": "Bearer " + token },
                     data: JSON.stringify(categoryData),
                     success: function (d) {
-                        if (d.status || d.Status) {
-                            showResult("Kategori başarıyla eklendi!", "success");
+                        btn.prop("disabled", false).html('<i class="fa fa-save mr-1"></i> Kaydet');
+
+                        // ✅ DÜZELTME: Hem camelCase hem PascalCase kontrolü
+                        var success = d.status !== undefined ? d.status : d.Status;
+                        var message = d.message !== undefined ? d.message : d.Message;
+
+                        if (success) {
+                            showResult(message || "Kategori başarıyla eklendi!", "success");
                             ResetForm();
                             GetCategoryList();
                         } else {
-                            showResult(d.message || "Eklenemedi.", "danger");
+                            showResult(message || "Kategori eklenemedi.", "danger");
                         }
                     },
-                    error: function() { showResult("Bağlantı Hatası (400/500).", "danger"); }
+                    error: function(xhr) {
+                        btn.prop("disabled", false).html('<i class="fa fa-save mr-1"></i> Kaydet');
+                        var errorMsg = "Bağlantı Hatası";
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMsg = xhr.responseJSON.message;
+                        } else if (xhr.responseJSON && xhr.responseJSON.Message) {
+                            errorMsg = xhr.responseJSON.Message;
+                        }
+                        showResult(errorMsg + " (Hata: " + xhr.status + ")", "danger");
+                    }
                 });
             });
 
+            // ✅ DÜZELTME: Düzenle butonu - formu dolduruyor
             $(document).on("click", ".btnEdit", function () {
                 var id = $(this).data("id");
+
+                // Butona loading efekti
+                var btn = $(this);
+                var originalHtml = btn.html();
+                btn.prop("disabled", true).html('<i class="fas fa-spinner fa-spin"></i>');
+
                 $.ajax({
                     url: apiBaseUrl + "/Category/GetById/" + id,
                     type: "GET",
                     headers: { "Authorization": "Bearer " + token },
                     success: function (d) {
-                        $("#txtId").val(d.id || d.Id);
-                        $("#txtName").val(d.name || d.Name);
-                        var activeState = d.isActive !== undefined ? d.isActive : d.IsActive;
-                        $("#cbIsActive").prop("checked", activeState);
+                        // ✅ DÜZELTME: camelCase kullanıyoruz (ASP.NET Core default)
+                        $("#txtId").val(d.id);
+                        $("#txtName").val(d.name || "");
+                        $("#txtDescription").val(d.description || "");
+                        $("#cbIsActive").prop("checked", d.isActive !== undefined ? d.isActive : true);
 
                         $("#btnSave").hide();
                         $("#editButtons").show();
                         $("#formTitle").text("Kategoriyi Düzenle");
+
+                        btn.prop("disabled", false).html(originalHtml);
+                    },
+                    error: function() {
+                        showResult("Kategori bilgisi alınamadı.", "danger");
+                        btn.prop("disabled", false).html(originalHtml);
                     }
                 });
             });
 
-            // 🛡️ DÜZELTME 3: Güncelleme işleminde 400 Hatasını Önleme
+            // ✅ DÜZELTME: Güncelleme işlemi
             $("#btnUpdate").click(function () {
                 var rawId = $("#txtId").val();
-                var name = $("#txtName").val();
+                var name = $("#txtName").val().trim();
+                var description = $("#txtDescription").val().trim();
 
-                if (!rawId) return;
+                if (!rawId) {
+                    showResult("Düzenlenecek kategori bulunamadı!", "danger");
+                    return;
+                }
+
+                if (!name) {
+                    showResult("Kategori adı boş olamaz!", "warning");
+                    $("#txtName").focus();
+                    return;
+                }
+
+                var btn = $(this);
+                btn.prop("disabled", true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Güncelleniyor...');
 
                 var categoryData = {
                     id: parseInt(rawId),
                     name: name,
-                    description: " ", // 400 Hatasını önler
+                    description: description || "Açıklama belirtilmedi",
                     isActive: $("#cbIsActive").is(":checked")
                 };
 
@@ -206,34 +280,69 @@
                     headers: { "Authorization": "Bearer " + token },
                     data: JSON.stringify(categoryData),
                     success: function (d) {
-                        if (d.status || d.Status) {
-                            showResult("Kategori güncellendi!", "success");
+                        btn.prop("disabled", false).html('<i class="fa fa-edit mr-1"></i> Güncelle');
+
+                        var success = d.status !== undefined ? d.status : d.Status;
+                        var message = d.message !== undefined ? d.message : d.Message;
+
+                        if (success) {
+                            showResult(message || "Kategori başarıyla güncellendi!", "success");
                             ResetForm();
                             GetCategoryList();
                         } else {
-                            showResult(d.message || "Güncellenemedi.", "danger");
+                            showResult(message || "Kategori güncellenemedi.", "danger");
                         }
+                    },
+                    error: function(xhr) {
+                        btn.prop("disabled", false).html('<i class="fa fa-edit mr-1"></i> Güncelle');
+                        var errorMsg = "Güncelleme sırasında hata oluştu";
+                        if (xhr.responseJSON && (xhr.responseJSON.message || xhr.responseJSON.Message)) {
+                            errorMsg = xhr.responseJSON.message || xhr.responseJSON.Message;
+                        }
+                        showResult(errorMsg + " (Hata: " + xhr.status + ")", "danger");
                     }
                 });
             });
 
+            // ✅ DÜZELTME: Silme işlemi - hata yönetimi eklendi
             $("#btnDelete").click(function () {
                 var id = parseInt($("#txtId").val());
-                if (!id) return;
+                if (!id) {
+                    showResult("Silinecek kategori bulunamadı!", "danger");
+                    return;
+                }
 
-                if(confirm("Bu kategoriyi silmek istediğinize emin misiniz?")) {
+                if(confirm("Bu kategoriyi silmek istediğinize emin misiniz?\n\n" +
+                          "Uyarı: Üzerinde anket bulunan kategoriler silinemez.")) {
+
+                    var btn = $(this);
+                    btn.prop("disabled", true).html('<i class="fas fa-spinner fa-spin mr-1"></i> Siliniyor...');
+
                     $.ajax({
                         url: apiBaseUrl + "/Category/Delete/" + id,
                         type: "DELETE",
                         headers: { "Authorization": "Bearer " + token },
                         success: function (d) {
-                            if (d.status || d.Status) {
-                                showResult("Kategori silindi!", "success");
+                            btn.prop("disabled", false).html('<i class="fa fa-trash mr-1"></i> Sil');
+
+                            var success = d.status !== undefined ? d.status : d.Status;
+                            var message = d.message !== undefined ? d.message : d.Message;
+
+                            if (success) {
+                                showResult(message || "Kategori başarıyla silindi!", "success");
                                 ResetForm();
                                 GetCategoryList();
                             } else {
-                                showResult(d.message, "danger");
+                                showResult(message || "Kategori silinemedi.", "warning");
                             }
+                        },
+                        error: function(xhr) {
+                            btn.prop("disabled", false).html('<i class="fa fa-trash mr-1"></i> Sil');
+                            var errorMsg = "Silme işlemi başarısız";
+                            if (xhr.responseJSON && (xhr.responseJSON.message || xhr.responseJSON.Message)) {
+                                errorMsg = xhr.responseJSON.message || xhr.responseJSON.Message;
+                            }
+                            showResult(errorMsg + " (Hata: " + xhr.status + ")", "danger");
                         }
                     });
                 }
@@ -242,19 +351,25 @@
             function ResetForm() {
                 $("#frmCategory")[0].reset();
                 $("#txtId").val("");
+                $("#txtDescription").val("");
                 $("#btnSave").show();
                 $("#editButtons").hide();
                 $("#formTitle").text("Yeni Kategori Ekle");
             }
 
-            $("#btnCancel").click(function () { ResetForm(); });
+            $("#btnCancel").click(function () {
+                ResetForm();
+                $("#divResult").fadeOut(300);
+            });
 
             function showResult(message, type) {
                 $("#divResult").stop(true, true).hide()
                     .removeClass().addClass("alert alert-" + type + " shadow-sm")
                     .html('<i class="fas fa-info-circle mr-2"></i>' + message).fadeIn(500);
 
-                setTimeout(function() { $("#divResult").fadeOut(1000); }, 4000);
+                // Başarılı mesajları 3 saniye, hata mesajlarını 6 saniye göster
+                var timeout = (type === "success") ? 3000 : 6000;
+                setTimeout(function() { $("#divResult").fadeOut(1000); }, timeout);
             }
 
             function toTitleCase(str) {

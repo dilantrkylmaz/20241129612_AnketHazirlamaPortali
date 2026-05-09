@@ -15,7 +15,6 @@ namespace Int2Uyg.API.Controllers
     {
         private readonly QuestionRepository _questionRepository;
         private readonly IMapper _mapper;
-        ResultDto _result = new ResultDto();
 
         public QuestionController(QuestionRepository questionRepository, IMapper mapper)
         {
@@ -33,7 +32,10 @@ namespace Int2Uyg.API.Controllers
         [HttpGet("{surveyId}")]
         public async Task<List<QuestionDto>> GetQuestionsBySurveyId(int surveyId)
         {
-            var filteredQuestions = await _questionRepository.Where(q => q.SurveyId == surveyId).ToListAsync();
+            // ✅ Soft‑delete kontrolü eklenmiş hâli
+            var filteredQuestions = await _questionRepository
+                .Where(q => q.SurveyId == surveyId && !q.IsDeleted)
+                .ToListAsync();
             return _mapper.Map<List<QuestionDto>>(filteredQuestions);
         }
 
@@ -41,38 +43,70 @@ namespace Int2Uyg.API.Controllers
         [Authorize]
         public async Task<ResultDto> Add(QuestionDto dto)
         {
+            // ✅ Her istek için yeni ResultDto (thread‑safe)
+            var result = new ResultDto();
+
+            if (string.IsNullOrWhiteSpace(dto.Text))
+            {
+                result.Status = false;
+                result.Message = "Soru metni boş olamaz!";
+                return result;
+            }
+
             var question = _mapper.Map<Question>(dto);
 
+            // ✅ Survey navigasyonunu null'la (tracking sorunları engellenir)
             question.Survey = null;
 
+            // ✅ QuestionOptions listesini garantile (AutoMapper null yapmış olabilir)
+            question.QuestionOptions ??= new List<QuestionOption>();
+
+            // ✅ Eklenen sorunun varsayılan olarak aktif olmasını sağla
+            question.IsActive = true;
+
             await _questionRepository.AddAsync(question);
-            _result.Status = true;
-            _result.Message = "Soru Başarıyla Eklendi";
-            return _result;
+
+            result.Status = true;
+            result.Message = "Soru Başarıyla Eklendi";
+            return result;
         }
 
         [HttpPut]
         [Authorize]
         public async Task<ResultDto> Update(QuestionDto dto)
         {
-            var question = _mapper.Map<Question>(dto);
+            var result = new ResultDto();
 
+            if (string.IsNullOrWhiteSpace(dto.Text))
+            {
+                result.Status = false;
+                result.Message = "Soru metni boş olamaz!";
+                return result;
+            }
+
+            var question = _mapper.Map<Question>(dto);
             question.Survey = null;
+            question.QuestionOptions ??= new List<QuestionOption>();
+            question.IsActive = dto.IsActive; // Güncellemede gönderilen değeri kullan
 
             await _questionRepository.UpdateAsync(question);
-            _result.Status = true;
-            _result.Message = "Soru Güncellendi";
-            return _result;
+
+            result.Status = true;
+            result.Message = "Soru Güncellendi";
+            return result;
         }
 
         [HttpDelete("{id}")]
         [Authorize]
         public async Task<ResultDto> Delete(int id)
         {
+            var result = new ResultDto();
+
             await _questionRepository.DeleteAsync(id);
-            _result.Status = true;
-            _result.Message = "Soru Silindi";
-            return _result;
+
+            result.Status = true;
+            result.Message = "Soru Silindi";
+            return result;
         }
     }
 }
