@@ -17,6 +17,16 @@ namespace Int2Uyg.API
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Services.AddControllers();
+            // CORS Ayarı: MVC projesinden gelen AJAX isteklerine izin verir
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", builder =>
+                {
+                    builder.AllowAnyOrigin()
+                           .AllowAnyMethod()
+                           .AllowAnyHeader();
+                });
+            });
             builder.Services.AddEndpointsApiExplorer();
 
             builder.Services.AddCors(options =>
@@ -142,9 +152,14 @@ namespace Int2Uyg.API
             }
 
             // ✅ FIX #1: Correct middleware order
-            app.UseHttpsRedirection();  // must come first
+            app.UseHttpsRedirection();
+
+            // 1. Resimlerin (wwwroot) dışarıdan okunabilmesi için
             app.UseStaticFiles();
-            app.UseCors("AllowAll");    // before authentication
+
+            // 2. CORS politikamızın devreye girmesi (Mutlaka UseRouting ve Auth'dan önce olmalı)
+            app.UseCors("AllowAll");
+
             app.UseAuthentication();
             app.UseAuthorization();
 
