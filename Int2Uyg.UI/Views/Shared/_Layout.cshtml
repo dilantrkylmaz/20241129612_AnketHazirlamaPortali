@@ -1,115 +1,66 @@
 ﻿<!DOCTYPE html>
 <html lang="tr">
-
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="Anket Hazırlama Portalı">
-    <meta name="author" content="Dilan">
-
-    <title>@ViewData["Title"] - Anket Hazırlama Portalı</title>
-
-    <link href="~/sbadmin/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <title>@ViewData["Title"] - Anket Portalı</title>
+    <link href="~/sbadmin/vendor/fontawesome-free/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
     <link href="~/sbadmin/css/sb-admin-2.min.css" rel="stylesheet">
-
     @RenderSection("Styles", false)
 </head>
-
 <body id="page-top">
-
     <div id="wrapper">
 
         <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
-
-            <!-- BRAND -> go to admin dashboard -->
-            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/admin">
-                <div class="sidebar-brand-icon rotate-n-15">
-                    <i class="fas fa-clipboard-list"></i>
-                </div>
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/Dashboard">
+                <div class="sidebar-brand-icon rotate-n-15"><i class="fas fa-clipboard-list"></i></div>
                 <div class="sidebar-brand-text mx-3">Anket Portalı</div>
             </a>
-
             <hr class="sidebar-divider my-0">
-
             <li class="nav-item">
-                <!-- Admin home -->
-                <a class="nav-link" href="/admin">
-                    <i class="fas fa-fw fa-home"></i>
-                    <span>Ana Sayfa</span>
-                </a>
+                <a class="nav-link" href="/Dashboard"><i class="fas fa-fw fa-home"></i><span>Ana Sayfa</span></a>
             </li>
-
             <hr class="sidebar-divider">
-
-            <li class="nav-item" id="menuCategories">
-                <!-- Admin categories -->
-                <a class="nav-link" href="/admin/categories">
-                    <i class="fas fa-fw fa-folder"></i>
-                    <span>Kategoriler</span>
-                </a>
-            </li>
-
-            <li class="nav-item" id="menuSurveys">
-                <!-- Admin surveys -->
-                <a class="nav-link" href="/admin/surveys">
-                    <i class="fas fa-fw fa-list-alt"></i>
-                    <span>Anket Yönetimi</span>
-                </a>
-            </li>
-
             <li class="nav-item">
-                <!-- Link to user profile (user area) -->
-                <a class="nav-link" href="/user/profile">
-                    <i class="fas fa-fw fa-user"></i>
-                    <span>Profilim</span>
-                </a>
+                <a class="nav-link" href="/Categories"><i class="fas fa-fw fa-folder"></i><span>Kategoriler</span></a>
             </li>
-
-            <!-- ✅ NEW: Sadece Admin'e gösterilen Kullanıcı Yönetimi menüsü -->
+            <li class="nav-item">
+                <a class="nav-link" href="/Surveys"><i class="fas fa-fw fa-list-alt"></i><span>Anket Yönetimi</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/Profile"><i class="fas fa-fw fa-user"></i><span>Profilim</span></a>
+            </li>
             <li class="nav-item" id="menuUserManagement" style="display:none;">
-                <a class="nav-link" href="/admin/users">
-                    <i class="fas fa-fw fa-users-cog"></i>
-                    <span>Kullanıcı Yönetimi</span>
-                </a>
+                <a class="nav-link" href="/UserManagement"><i class="fas fa-fw fa-users-cog"></i><span>Kullanıcı Yönetimi</span></a>
             </li>
-
             <hr class="sidebar-divider d-none d-md-block">
-
             <div class="text-center d-none d-md-inline">
                 <button class="rounded-circle border-0" id="sidebarToggle"></button>
             </div>
-
         </ul>
 
         <div id="content-wrapper" class="d-flex flex-column">
             <div id="content">
-
                 <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
-
                     <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
                         <i class="fa fa-bars"></i>
                     </button>
-
                     <ul class="navbar-nav ml-auto">
                         <div class="topbar-divider d-none d-sm-block"></div>
-
                         <li class="nav-item dropdown no-arrow">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
-                               data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span id="userBadge" class="badge p-1 mr-2 text-white" style="font-size: 11px;">Yükleniyor...</span>
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown">
+                                <span id="userBadge" class="badge p-1 mr-2 text-white" style="font-size:11px;">...</span>
                                 <span id="userNameSpan" class="mr-2 d-none d-lg-inline text-gray-800 font-weight-bold small">...</span>
                                 <img class="img-profile rounded-circle shadow-sm" src="~/sbadmin/img/undraw_profile.svg"
-                                     id="topProfileImage" style="width: 32px; height: 32px; object-fit: cover;">
+                                     id="topProfileImage" style="width:32px;height:32px;object-fit:cover;">
                             </a>
-
-                            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
-                                <a class="dropdown-item" href="/user/profile">
+                            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in">
+                                <a class="dropdown-item" href="/Profile">
                                     <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i> Profilim
                                 </a>
-                                <!-- Admin menüsü dropdown'da da göster -->
-                                <a class="dropdown-item" href="/admin/users" id="dropdownUserMgmt" style="display:none;">
+                                <a class="dropdown-item" href="/UserManagement" id="dropdownUserMgmt" style="display:none;">
                                     <i class="fas fa-users-cog fa-sm fa-fw mr-2 text-gray-400"></i> Kullanıcı Yönetimi
                                 </a>
                                 <div class="dropdown-divider"></div>
@@ -119,13 +70,11 @@
                             </div>
                         </li>
                     </ul>
-
                 </nav>
 
                 <div class="container-fluid">
                     @RenderBody()
                 </div>
-
             </div>
 
             <footer class="sticky-footer bg-white">
@@ -138,20 +87,16 @@
         </div>
     </div>
 
-    <a class="scroll-to-top rounded" href="#page-top">
-        <i class="fas fa-angle-up"></i>
-    </a>
+    <a class="scroll-to-top rounded" href="#page-top"><i class="fas fa-angle-up"></i></a>
 
     <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header bg-danger text-white">
                     <h5 class="modal-title">Çıkış Yapmak Üzeresiniz!</h5>
-                    <button class="close text-white" type="button" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">×</span>
-                    </button>
+                    <button class="close text-white" type="button" data-dismiss="modal"><span>×</span></button>
                 </div>
-                <div class="modal-body">Oturumunuzu sonlandırıp giriş sayfasına yönlendirileceksiniz. Onaylıyor musunuz?</div>
+                <div class="modal-body">Oturumunuzu sonlandırıp giriş sayfasına yönlendirileceksiniz.</div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" type="button" data-dismiss="modal">İptal</button>
                     <a class="btn btn-danger text-white" id="btnLogoutAction">Oturumu Kapat</a>
@@ -168,75 +113,75 @@
     <script>
         function parseJwt(token) {
             try {
-                var base64Url = token.split('.')[1];
-                var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
-                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-                }).join(''));
-                return JSON.parse(jsonPayload);
-            } catch (e) { return null; }
+                var b = token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+                return JSON.parse(decodeURIComponent(atob(b).split('').map(function(c){
+                    return '%'+('00'+c.charCodeAt(0).toString(16)).slice(-2);
+                }).join('')));
+            } catch(e) { return null; }
         }
-
         function toTitleCase(str) {
             if (!str) return "";
-            return str.split(' ').map(function(word) {
-                return word.charAt(0).toLocaleUpperCase('tr-TR') + word.slice(1).toLocaleLowerCase('tr-TR');
+            return str.split(' ').map(function(w){
+                return w.charAt(0).toLocaleUpperCase('tr-TR') + w.slice(1).toLocaleLowerCase('tr-TR');
             }).join(' ');
         }
 
         $(document).ready(function () {
             var token = localStorage.getItem("token");
             var apiBaseUrl = "https://localhost:7258/api";
-
             var path = window.location.pathname.toLowerCase();
-            if (!token && path !== "/login" && path !== "/register" && path !== "/forgotpassword") {
-                window.location.href = "/Login";
+            var publicPaths = ["/login", "/register", "/forgotpassword"];
+
+            if (!token) {
+                if (!publicPaths.includes(path)) window.location.href = "/Login";
                 return;
             }
 
-            if (token) {
-                var payload = parseJwt(token);
-                if (payload) {
-                    var rawName = payload["FullName"]
-                        || payload["unique_name"]
-                        || payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"]
-                        || "Kullanıcı";
-                    $("#userNameSpan").text(toTitleCase(rawName));
+            var payload = parseJwt(token);
+            if (!payload) { localStorage.removeItem("token"); window.location.href = "/Login"; return; }
 
-                    var roles = payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
-                    var badge = $("#userBadge");
-                    badge.removeClass("badge-success badge-primary");
+            var roles = payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+            var isAdmin = roles && (roles === "Admin" || roles.includes("Admin"));
 
-                    var isAdmin = roles && (roles === "Admin" || roles.includes("Admin"));
+            // Normal üye yalnızca /surveys, /profile, /home/questions, /home/takesurvey'e girebilir
+            if (!isAdmin) {
+                var userPaths = ["/surveys", "/profile", "/home/questions", "/home/takesurvey"];
+                var ok = userPaths.some(function(p){ return path.startsWith(p); });
+                if (!ok) { window.location.href = "/Surveys"; return; }
+            }
 
-                    if (isAdmin) {
-                        badge.addClass("badge-success").text("Sistem Yöneticisi");
-                        // ✅ Admin ise Kullanıcı Yönetimi menüsünü göster
-                        $("#menuUserManagement").show();
-                        $("#dropdownUserMgmt").show();
-                    } else {
-                        badge.addClass("badge-primary").text("Portal Üyesi");
+            // Ad badge
+            var rawName = payload["unique_name"]
+                || payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"]
+                || "Kullanıcı";
+            $("#userNameSpan").text(toTitleCase(rawName));
+
+            var badge = $("#userBadge").removeClass("badge-success badge-primary");
+            if (isAdmin) {
+                badge.addClass("badge-success").text("Sistem Yöneticisi");
+                $("#menuUserManagement, #dropdownUserMgmt").show();
+            } else {
+                badge.addClass("badge-primary").text("Portal Üyesi");
+            }
+
+            // Profil foto
+            var userId = payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"]
+                      || payload["nameid"] || payload["sub"];
+            if (userId) {
+                $.ajax({
+                    url: apiBaseUrl + "/User/GetById/" + userId,
+                    type: "GET",
+                    headers: { "Authorization": "Bearer " + token },
+                    success: function(d) {
+                        var photo = d.photoUrl || d.PhotoUrl;
+                        if (photo) {
+                            var src = photo.startsWith("undraw")
+                                ? "/sbadmin/img/" + photo
+                                : apiBaseUrl.replace("/api","") + "/Files/UserPhotos/" + photo;
+                            $("#topProfileImage").attr("src", src);
+                        }
                     }
-
-                    var userId = payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"]
-                              || payload["nameid"] || payload["sub"] || payload["Id"];
-                    if (userId) {
-                        $.ajax({
-                            url: apiBaseUrl + "/User/GetById/" + userId,
-                            type: "GET",
-                            headers: { "Authorization": "Bearer " + token },
-                            success: function (data) {
-                                var photo = data.photoUrl || data.PhotoUrl;
-                                if (photo) {
-                                    var imgPath = photo.startsWith("undraw")
-                                        ? "/sbadmin/img/" + photo
-                                        : apiBaseUrl.replace("/api", "") + "/Files/UserPhotos/" + photo;
-                                    $("#topProfileImage").attr("src", imgPath);
-                                }
-                            }
-                        });
-                    }
-                }
+                });
             }
 
             $("#btnLogoutAction").click(function () {
