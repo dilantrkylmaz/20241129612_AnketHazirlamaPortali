@@ -1,0 +1,154 @@
+﻿@{
+    ViewData["Title"] = "Anket Raporları";
+}
+
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800 font-weight-bold">
+            <i class="fas fa-chart-pie text-primary mr-2"></i> Anket Raporları
+        </h1>
+    </div>
+
+    <!-- Anket Seçimi -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 bg-white">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-poll mr-1"></i> Anket Seçin
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <select id="surveySelect" class="form-control">
+                        <option value="">-- Anket seçiniz --</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button id="btnLoadReport" class="btn btn-primary btn-block">Raporu Getir</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rapor İçeriği -->
+    <div id="reportContent"></div>
+</div>
+
+@section Scripts {
+    <!-- Chart.js (zaten tema içinde var, ama emin olmak için ekledim) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            var apiBaseUrl = "https://localhost:7258/api";
+            var token = localStorage.getItem("token");
+            if (!token) { window.location.href = "/Login"; return; }
+
+            // Anketleri dropdown'a yükle
+            $.ajax({
+                url: apiBaseUrl + "/Survey/List",
+                type: "GET",
+                headers: { "Authorization": "Bearer " + token },
+                success: function (surveys) {
+                    $.each(surveys, function (i, s) {
+                        var title = toTitleCase(s.title || s.Title || "—");
+                        $("#surveySelect").append('<option value="' + (s.id || s.Id) + '">' + title + '</option>');
+                    });
+                }
+            });
+
+            $("#btnLoadReport").click(function () {
+                var surveyId = $("#surveySelect").val();
+                if (!surveyId) {
+                    alert("Lütfen bir anket seçin.");
+                    return;
+                }
+
+                $.ajax({
+                    url: apiBaseUrl + "/Survey/Report/" + surveyId,
+                    type: "GET",
+                    headers: { "Authorization": "Bearer " + token },
+                    success: function (report) {
+                        displayReport(report);
+                    },
+                    error: function () {
+                        alert("Rapor yüklenirken hata oluştu.");
+                    }
+                });
+            });
+
+            function displayReport(report) {
+                var html = '<div class="row">';
+
+                $.each(report.questions, function (i, q) {
+                    if (q.options.length === 0) return;
+
+                    html += '<div class="col-xl-6 col-lg-8 mb-4">';
+                    html += '<div class="card shadow h-100">';
+                    html += '<div class="card-header py-3 bg-white">';
+                    html += '<h6 class="m-0 font-weight-bold text-dark">' + (i+1) + '. ' + q.questionText + '</h6>';
+                    html += '</div>';
+                    html += '<div class="card-body">';
+                    html += '<div class="chart-area" style="height: 300px;">';
+                    html += '<canvas id="chart_' + q.questionId + '"></canvas>';
+                    html += '</div>';
+                    html += '</div>';
+                    html += '</div>';
+                    html += '</div>';
+                });
+
+                html += '</div>';
+                $("#reportContent").html(html);
+
+                // Grafikleri çiz
+                $.each(report.questions, function (i, q) {
+                    if (q.options.length === 0) return;
+
+                    var labels = q.options.map(o => o.optionText);
+                    var data = q.options.map(o => o.count);
+                    var colors = [
+                        '#4e73df','#1cc88a','#36b9cc','#f6c23e','#e74a3b','#858796',
+                        '#5a5c69','#6610f2','#6f42c1','#fd7e14'
+                    ];
+
+                    var ctx = document.getElementById('chart_' + q.questionId).getContext('2d');
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Cevap Sayısı',
+                                data: data,
+                                backgroundColor: colors.slice(0, labels.length),
+                                borderColor: '#ffffff',
+                                borderWidth: 2,
+                                borderRadius: 8,
+                                hoverBackgroundColor: colors.slice(0, labels.length)
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: { stepSize: 1 }
+                                }
+                            }
+                        }
+                    });
+                });
+            }
+
+            function toTitleCase(str) {
+                if (!str) return "";
+                return str.split(' ').map(function (w) {
+                    return w.charAt(0).toLocaleUpperCase('tr-TR') + w.slice(1).toLocaleLowerCase('tr-TR');
+                }).join(' ');
+            }
+        });
+    </script>
+}

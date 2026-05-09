@@ -4,6 +4,7 @@ using Int2Uyg.API.Models;
 using Int2Uyg.API.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Int2Uyg.API.Controllers
 {
@@ -28,6 +29,21 @@ namespace Int2Uyg.API.Controllers
             var answers = await _answerRepository.GetAllAsync();
             var filteredAnswers = answers.Where(a => a.QuestionId == questionId).ToList();
             return _mapper.Map<List<AnswerDto>>(filteredAnswers);
+        }
+        [HttpGet("{userId}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<List<UserAnswerDto>>> GetUserAnswers(string userId)
+        {
+            var answers = await _answerRepository
+                .Where(a => a.UserId == userId && !a.IsDeleted)
+                .Include(a => a.Question)
+                .Include(a => a.Survey)
+                .Include(a => a.SelectedOption)
+                .OrderByDescending(a => a.CreatedDate)
+                .ToListAsync();
+
+            var result = _mapper.Map<List<UserAnswerDto>>(answers);
+            return Ok(result);
         }
 
         [HttpGet("{surveyId}")]
@@ -57,5 +73,6 @@ namespace Int2Uyg.API.Controllers
             _result.Message = "Cevap silindi.";
             return _result;
         }
+            
     }
 }

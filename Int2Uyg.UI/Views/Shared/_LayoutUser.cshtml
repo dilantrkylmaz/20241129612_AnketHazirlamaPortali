@@ -325,6 +325,12 @@
         </ul>
 
         <div class="navbar-user-area">
+            <!-- Admin panel geçiş butonu (sadece admin) -->
+            <a class="btn-primary-user" href="/admin" id="btnAdminPanel"
+               style="display:none; padding:6px 14px; font-size:0.8rem; margin-right:8px;">
+                <i class="fas fa-user-shield mr-1"></i> Yönetim
+            </a>
+
             <a class="user-avatar-btn" href="/user/profile">
                 <img src="/sbadmin/img/undraw_profile.svg" id="topUserPhoto"
                      onerror="this.src='/sbadmin/img/undraw_profile.svg'">
@@ -381,6 +387,13 @@
                     || payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"]
                     || "Kullanıcı";
                 $("#topUserName").text(toTitleCase(rawName));
+
+                // ---------- ADMIN KONTROLÜ ----------
+                var roles = payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+                var isAdmin = roles && (roles === "Admin" || roles.includes("Admin"));
+                if (isAdmin) {
+                    $("#btnAdminPanel").show();
+                }
 
                 var userId = payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"]
                           || payload["nameid"] || payload["sub"];

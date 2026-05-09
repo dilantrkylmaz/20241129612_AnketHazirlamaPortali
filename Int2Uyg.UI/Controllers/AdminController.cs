@@ -62,5 +62,17 @@ namespace Int2Uyg.UI.Controllers
             ViewBag.ApiBaseUrl = _configuration["ApiBaseUrl"];
             return View();
         }
+        [Route("reports")]
+        public IActionResult Reports()
+        {
+            ViewBag.ApiBaseUrl = _configuration["ApiBaseUrl"];
+            return View();
+        }
+        [Route("userreports")]
+        public IActionResult UserReports()
+        {
+            ViewBag.ApiBaseUrl = _configuration["ApiBaseUrl"];
+            return View();
+        }
     }
 }

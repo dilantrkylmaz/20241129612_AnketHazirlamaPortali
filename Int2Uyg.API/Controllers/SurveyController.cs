@@ -14,13 +14,22 @@ namespace Int2Uyg.API.Controllers
     public class SurveyController : ControllerBase
     {
         private readonly SurveyRepository _surveyRepository;
+        private readonly QuestionRepository _questionRepository;
+        private readonly AnswerRepository _answerRepository;
         private readonly IMapper _mapper;
         private readonly IWebHostEnvironment _env;
         ResultDto _result = new ResultDto();
 
-        public SurveyController(SurveyRepository surveyRepository, IMapper mapper, IWebHostEnvironment env)
+        public SurveyController(
+            SurveyRepository surveyRepository,
+            QuestionRepository questionRepository,
+            AnswerRepository answerRepository,
+            IMapper mapper,
+            IWebHostEnvironment env)
         {
             _surveyRepository = surveyRepository;
+            _questionRepository = questionRepository;
+            _answerRepository = answerRepository;
             _mapper = mapper;
             _env = env;
         }
@@ -47,16 +56,13 @@ namespace Int2Uyg.API.Controllers
 
             if (!string.IsNullOrEmpty(dto.PhotoUrl) && dto.PhotoUrl.Contains("base64"))
             {
-                // Resim base64 verisi geldi → kaydet
                 survey.PhotoUrl = SaveImage(dto.PhotoUrl) ?? string.Empty;
             }
             else
             {
-                // ✅ FIX: null yerine boş string — PhotoUrl sütunu NOT NULL
                 survey.PhotoUrl = string.Empty;
             }
 
-            // Description null/boş gelirse varsayılan değer ata
             if (string.IsNullOrWhiteSpace(survey.Description))
             {
                 survey.Description = "Açıklama belirtilmedi.";
@@ -86,7 +92,6 @@ namespace Int2Uyg.API.Controllers
 
             if (dto.PhotoUrl == "DELETE")
             {
-                // ✅ FIX: Resim silindi → null yerine boş string
                 survey.PhotoUrl = string.Empty;
             }
             else if (!string.IsNullOrEmpty(dto.PhotoUrl) && dto.PhotoUrl.Contains("base64"))
@@ -95,11 +100,9 @@ namespace Int2Uyg.API.Controllers
             }
             else
             {
-                // Resim değişmediyse eskiyi koru; eski değer null ise boş string
                 survey.PhotoUrl = existSurvey.PhotoUrl ?? string.Empty;
             }
 
-            // Description null/boş gelirse varsayılan değer ata
             if (string.IsNullOrWhiteSpace(survey.Description))
             {
                 survey.Description = "Açıklama belirtilmedi.";
@@ -147,6 +150,56 @@ namespace Int2Uyg.API.Controllers
             _result.Status = true;
             _result.Message = "Anket Silindi";
             return _result;
+        }
+
+        // ---------- RAPOR ENDPOINTI ----------
+        [HttpGet("{id}")]
+        [Authorize(Roles = "Admin")]
+        [ActionName("Report")]
+        public async Task<ActionResult<SurveyReportDto>> GetReport(int id)
+        {
+            var survey = await _surveyRepository.GetByIdAsync(id);
+            if (survey == null)
+                return NotFound("Anket bulunamadı.");
+
+            var questions = await _questionRepository
+                .Where(q => q.SurveyId == id && !q.IsDeleted)
+                .Include(q => q.QuestionOptions.Where(o => !o.IsDeleted))
+                .ToListAsync();
+
+            var report = new SurveyReportDto
+            {
+                SurveyId = id,
+                SurveyTitle = survey.Title
+            };
+
+            foreach (var question in questions)
+            {
+                var qDto = new QuestionReportDto
+                {
+                    QuestionId = question.Id,
+                    QuestionText = question.Text
+                };
+
+                var answers = await _answerRepository
+                    .Where(a => a.QuestionId == question.Id && a.SurveyId == id && !a.IsDeleted)
+                    .ToListAsync();
+
+                foreach (var option in question.QuestionOptions)
+                {
+                    var count = answers.Count(a => a.SelectedOptionId == option.Id);
+                    qDto.Options.Add(new OptionReportDto
+                    {
+                        OptionId = option.Id,
+                        OptionText = option.OptionText,
+                        Count = count
+                    });
+                }
+
+                report.Questions.Add(qDto);
+            }
+
+            return Ok(report);
         }
     }
 }

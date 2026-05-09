@@ -3,46 +3,228 @@
 }
 
 <style>
-    li.option-item {
-        cursor: pointer;
-        transition: 0.2s ease-in-out;
-        border-left: 5px solid transparent !important;
+    .survey-container {
+        max-width: 780px;
+        margin: 0 auto;
     }
 
-        li.option-item:hover {
-            background-color: #f8f9fc !important;
-            border-left: 5px solid #4e73df !important;
+    .survey-hero {
+        background: linear-gradient(135deg, #6c63ff 0%, #ff6584 100%);
+        border-radius: 24px;
+        padding: 2rem 2.5rem;
+        color: white;
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+        box-shadow: 0 12px 40px rgba(108, 99, 255, 0.2);
+    }
+
+        .survey-hero h1 {
+            font-family: 'Sora', sans-serif;
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin: 0;
+            flex: 1;
         }
 
-    li.option-selected {
-        background-color: #d1ecf1 !important;
-        border-left: 5px solid #0c5460 !important;
-        font-weight: bold;
-        color: #0c5460 !important;
+        .survey-hero .back-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            border-radius: 12px;
+            padding: 0.6rem 1.4rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+            .survey-hero .back-btn:hover {
+                background: rgba(255,255,255,0.3);
+                color: white;
+                text-decoration: none;
+            }
+
+    .question-card {
+        background: white;
+        border-radius: 20px;
+        padding: 1.75rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.04);
+        border: 1px solid rgba(108,99,255,0.06);
+        transition: transform 0.2s, box-shadow 0.2s;
     }
 
-    .locked-options {
+        .question-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 36px rgba(108,99,255,0.08);
+        }
+
+    .question-number {
+        display: inline-block;
+        background: #ede9ff;
+        color: #6c63ff;
+        font-weight: 700;
+        font-size: 0.85rem;
+        padding: 0.3rem 1rem;
+        border-radius: 50px;
+        margin-bottom: 1rem;
+        font-family: 'Sora', sans-serif;
+    }
+
+    .question-text {
+        font-family: 'Sora', sans-serif;
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: #1a1a2e;
+        margin-bottom: 1.5rem;
+        line-height: 1.5;
+    }
+
+    .option-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .option-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: #f8f7ff;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 1rem 1.25rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 1rem;
+        color: #2d2d3a;
+        position: relative;
+    }
+
+        .option-item:hover {
+            border-color: #6c63ff;
+            background: #f0edff;
+            box-shadow: 0 4px 12px rgba(108,99,255,0.1);
+        }
+
+        .option-item.selected {
+            border-color: #6c63ff;
+            background: #ede9ff;
+            font-weight: 600;
+            box-shadow: 0 4px 14px rgba(108,99,255,0.15);
+        }
+
+    .option-letter {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        background: white;
+        border: 1.5px solid #d1d3e2;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        color: #6b7280;
+        flex-shrink: 0;
+        transition: all 0.2s;
+    }
+
+    .option-item.selected .option-letter {
+        background: #6c63ff;
+        border-color: #6c63ff;
+        color: white;
+    }
+
+    .option-item.locked {
         pointer-events: none;
-        opacity: 0.8;
+        opacity: 0.7;
+    }
+
+    .submit-section {
+        margin-top: 2.5rem;
+        text-align: center;
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #6c63ff, #5a52d5);
+        border: none;
+        color: white;
+        padding: 1rem 3rem;
+        border-radius: 14px;
+        font-size: 1.1rem;
+        font-weight: 700;
+        font-family: 'Sora', sans-serif;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 8px 24px rgba(108,99,255,0.3);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(108,99,255,0.4);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #6b7280;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.04);
+    }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.4;
+            color: #6c63ff;
+        }
+
+    /* Loading */
+    .loading-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 4rem 2rem;
+        color: #6b7280;
     }
 </style>
 
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card shadow mb-4">
-            <div class="card-header py-3 bg-primary">
-                <h6 class="m-0 font-weight-bold text-white" id="surveyTitle"><i class="fas fa-poll-h mr-2"></i> Anket Yükleniyor...</h6>
-            </div>
-            <div class="card-body" id="questionsArea">
-                <div class="text-center text-muted my-4" id="loadingDiv">
-                    <i class="fas fa-spinner fa-spin fa-2x mb-2"></i><p>Sorular Yükleniyor...</p>
-                </div>
-            </div>
-            <div class="card-footer bg-light text-center">
-                <a href="/Home/Index" class="btn btn-secondary shadow-sm">
-                    <i class="fas fa-arrow-left mr-1"></i> Ana Sayfaya Dön
-                </a>
-            </div>
+<div class="survey-container">
+    <!-- Hero bölümü: başlık + geri dön butonu -->
+    <div class="survey-hero">
+        <h1 id="surveyTitle"><i class="fas fa-spinner fa-spin mr-2"></i> Anket Yükleniyor...</h1>
+        <a href="/user/browse" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Anketlere Dön
+        </a>
+    </div>
+
+    <!-- Soruların listeleneceği alan -->
+    <div id="questionsArea">
+        <!-- Yükleniyor -->
+        <div id="loadingDiv" class="loading-container">
+            <i class="fas fa-spinner fa-spin fa-3x mb-3" style="color:#6c63ff;"></i>
+            <p class="font-weight-bold">Sorular Yükleniyor...</p>
         </div>
     </div>
 </div>
@@ -79,10 +261,11 @@
                 type: "GET",
                 headers: { "Authorization": "Bearer " + token },
                 success: function (d) {
-                    $("#surveyTitle").html('<i class="fas fa-poll-h mr-2"></i> ' + (d.title || d.Title));
+                    var title = d.title || d.Title || "Anket";
+                    $("#surveyTitle").html(title);
                     GetQuestions();
                 },
-                error: function() { alert("Anket bulunamadı!"); window.location.href="/Home/Index"; }
+                error: function() { alert("Anket bulunamadı!"); window.location.href="/user/browse"; }
             });
 
             // 2. Soruları Ekrana Çiz
@@ -96,39 +279,48 @@
                         var area = $("#questionsArea").empty();
 
                         if (!data || data.length === 0) {
-                            area.append('<div class="alert alert-info">Bu ankette henüz soru bulunmuyor.</div>');
+                            area.append(`
+                                <div class="empty-state">
+                                    <i class="fas fa-clipboard-list"></i>
+                                    <p class="font-weight-bold">Bu ankette henüz soru bulunmuyor.</p>
+                                </div>
+                            `);
                             return;
                         }
 
                         $.each(data, function (i, item) {
                             var qId = item.id || item.Id || item.questionId || item.QuestionId;
-                            var qText = item.text || item.Text || item.title || item.Title;
+                            var qText = item.text || item.Text || item.title || item.Title || "Soru metni";
 
-                            var qHtml = '<div class="card mb-4 border-left-primary shadow-sm question-card" data-qid="' + qId + '">' +
-                                '<div class="card-header bg-white font-weight-bold text-dark">' +
-                                    '<span class="badge badge-primary mr-2">Soru ' + (i+1) + '</span> ' + qText +
-                                '</div>' +
-                                '<div class="card-body">' +
-                                    '<ul class="list-group option-list" id="optionList_' + qId + '"></ul>' +
-                                '</div>' +
-                            '</div>';
+                            var qHtml = `
+                                <div class="question-card" data-qid="${qId}">
+                                    <div class="question-number">Soru ${i+1}</div>
+                                    <div class="question-text">${qText}</div>
+                                    <div class="option-list" id="optionList_${qId}"></div>
+                                </div>
+                            `;
 
                             area.append(qHtml);
                             if (qId) { LoadOptions(qId); }
                         });
 
-                        // Tek gönder butonu en alta
-                        var submitAllBtn = '<div class="text-center mt-5 mb-2">' +
-                            '<button class="btn btn-success btn-lg px-5 shadow font-weight-bold" id="btnSubmitSurvey">' +
-                                '<i class="fas fa-check-double mr-2"></i> Anketi Tamamla ve Gönder' +
-                            '</button>' +
-                        '</div>';
-                        area.append(submitAllBtn);
+                        // Gönder butonu
+                        var submitBtn = `
+                            <div class="submit-section">
+                                <button class="btn-submit" id="btnSubmitSurvey">
+                                    <i class="fas fa-check-double"></i> Cevapları Gönder
+                                </button>
+                            </div>
+                        `;
+                        area.append(submitBtn);
+                    },
+                    error: function() {
+                        $("#questionsArea").html('<div class="empty-state"><i class="fas fa-exclamation-circle text-danger"></i><p>Anket yüklenirken hata oluştu.</p></div>');
                     }
                 });
             }
 
-            // 3. Şıkları Çiz
+            // 3. Şıkları Yükle
             function LoadOptions(qId) {
                 $.ajax({
                     url: apiBaseUrl + "/QuestionOption/GetOptionsByQuestionId/" + qId,
@@ -139,7 +331,7 @@
                         var alphabet = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
 
                         if (!data || data.length === 0) {
-                            ul.append('<li class="list-group-item text-muted small border-0 bg-light">Bu soruya şık eklenmemiş.</li>');
+                            ul.append('<div class="option-item locked" style="opacity:0.5;cursor:default;">Bu soruya şık eklenmemiş.</div>');
                             return;
                         }
 
@@ -147,25 +339,28 @@
                             var optId = opt.id || opt.Id || opt.questionOptionId || opt.QuestionOptionId;
                             var optText = opt.optionText || opt.OptionText;
 
-                            var liHtml = '<li class="list-group-item option-item shadow-sm mb-1 rounded" data-id="' + optId + '">' +
-                                '<strong class="text-primary mr-2">' + (alphabet[idx] || "-") + ')</strong> ' + optText +
-                            '</li>';
+                            var liHtml = `
+                                <div class="option-item" data-id="${optId}">
+                                    <span class="option-letter">${alphabet[idx] || "*"}</span>
+                                    <span>${optText}</span>
+                                </div>
+                            `;
                             ul.append(liHtml);
                         });
                     }
                 });
             }
 
-            // 4. Şık Seçme Efekti
-            $(document).on("click", "li.option-item", function () {
-                $(this).parent().find('li.option-item').removeClass("option-selected");
-                $(this).addClass("option-selected");
+            // 4. Seçim işlemi
+            $(document).on("click", ".option-item:not(.locked)", function () {
+                var $this = $(this);
+                $this.siblings('.option-item').removeClass('selected');
+                $this.addClass('selected');
             });
 
-            // 5. Anketi Toplu Gönder
-            // ✅ FIX: SelectedOptionId (AnswerDto ile eşleşen alan) + SurveyId eklendi
+            // 5. Anketi Gönder
             $(document).on("click", "#btnSubmitSurvey", function () {
-                var selectedOptions = $(".option-selected");
+                var selectedOptions = $(".option-item.selected");
                 var totalQuestions = $(".question-card").length;
 
                 if (selectedOptions.length === 0) {
@@ -181,7 +376,7 @@
 
                 var btn = $(this);
                 var originalHtml = btn.html();
-                btn.html('<i class="fas fa-spinner fa-spin mr-2"></i> Cevaplarınız Gönderiliyor...').prop("disabled", true);
+                btn.html('<i class="fas fa-spinner fa-spin mr-2"></i> Gönderiliyor...').prop("disabled", true);
 
                 var requests = [];
 
@@ -189,7 +384,6 @@
                     var optionId = $(this).data("id");
                     var qId = $(this).closest('.question-card').data("qid");
 
-                    // ✅ FIX: QuestionOptionId → SelectedOptionId, SurveyId eklendi
                     var answerData = {
                         UserId: currentUserId,
                         QuestionId: parseInt(qId),
@@ -209,13 +403,13 @@
                 });
 
                 $.when.apply($, requests).done(function () {
-                    btn.html('<i class="fas fa-check-circle mr-2"></i> Anket Başarıyla Tamamlandı!')
-                       .removeClass('btn-success').addClass('btn-secondary');
-                    $("#questionsArea").addClass("locked-options");
+                    btn.html('<i class="fas fa-check-circle mr-2"></i> Gönderildi!')
+                       .removeClass('btn-submit').addClass('btn-submit').css('background','#059669');
+                    $(".option-item").addClass("locked");
 
                     setTimeout(function() {
                         alert("🎉 Anketi başarıyla tamamladınız, katılımınız için teşekkürler!");
-                        window.location.href = "/Home/Index";
+                        window.location.href = "/user/browse";
                     }, 1500);
 
                 }).fail(function () {

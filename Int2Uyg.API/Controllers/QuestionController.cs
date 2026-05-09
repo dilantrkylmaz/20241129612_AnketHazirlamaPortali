@@ -39,6 +39,8 @@ namespace Int2Uyg.API.Controllers
             return _mapper.Map<List<QuestionDto>>(filteredQuestions);
         }
 
+
+
         [HttpPost]
         [Authorize]
         public async Task<ResultDto> Add(QuestionDto dto)

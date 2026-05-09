@@ -1,0 +1,104 @@
+﻿@{
+    ViewData["Title"] = "Kullanıcı Cevapları";
+}
+
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800 font-weight-bold">
+            <i class="fas fa-user-check text-success mr-2"></i> Kullanıcı Cevapları
+        </h1>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Kullanıcı Seç</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <select id="userSelect" class="form-control">
+                        <option value="">-- Kullanıcı seçin --</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-primary btn-block" id="btnLoadUserAnswers">Cevapları Getir</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-success">Cevaplar</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="tbAnswers" width="100%" cellspacing="0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Anket</th>
+                            <th>Soru</th>
+                            <th>Verilen Cevap</th>
+                            <th>Tarih</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div id="noData" class="text-center text-muted" style="display:none;">Henüz cevap kaydı yok.</div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            var apiBaseUrl = "https://localhost:7258/api";
+            var token = localStorage.getItem("token");
+            if (!token) { window.location.href = "/Login"; return; }
+
+            // Kullanıcıları yükle
+            $.ajax({
+                url: apiBaseUrl + "/User/List",
+                type: "GET",
+                headers: { "Authorization": "Bearer " + token },
+                success: function (users) {
+                    $.each(users, function (i, u) {
+                        var name = (u.fullName || u.FullName || "") + " (" + (u.userName || u.UserName) + ")";
+                        $("#userSelect").append('<option value="' + (u.id || u.Id) + '">' + name + '</option>');
+                    });
+                }
+            });
+
+            $("#btnLoadUserAnswers").click(function () {
+                var userId = $("#userSelect").val();
+                if (!userId) { alert("Lütfen kullanıcı seçin."); return; }
+
+                $.ajax({
+                    url: apiBaseUrl + "/Answer/GetUserAnswers/" + userId,
+                    type: "GET",
+                    headers: { "Authorization": "Bearer " + token },
+                    success: function (data) {
+                        var rows = "";
+                        $("#tbAnswers tbody").empty();
+                        if (data.length === 0) {
+                            $("#noData").show();
+                            return;
+                        }
+                        $("#noData").hide();
+                        $.each(data, function (i, a) {
+                            var answerText = a.selectedOptionText || a.SelectedOptionText || a.textAnswer || a.TextAnswer || "—";
+                            rows += "<tr>" +
+                                "<td>" + (a.surveyTitle || a.SurveyTitle) + "</td>" +
+                                "<td>" + (a.questionText || a.QuestionText) + "</td>" +
+                                "<td><strong>" + answerText + "</strong></td>" +
+                                "<td>" + new Date(a.createdDate || a.CreatedDate).toLocaleString('tr-TR') + "</td>" +
+                                "</tr>";
+                        });
+                        $("#tbAnswers tbody").html(rows);
+                    }
+                });
+            });
+        });
+    </script>
+}
