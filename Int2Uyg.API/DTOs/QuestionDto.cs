@@ -6,6 +6,6 @@
         public string Text { get; set; }
         public int SurveyId { get; set; }
         public bool IsActive { get; set; }
-        public List<QuestionOptionDto> QuestionOptions { get; set; }
+        public List<QuestionOptionDto>? QuestionOptions { get; set; } // ? ekledik
     }
 }

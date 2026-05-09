@@ -1,281 +1,340 @@
-﻿<script>
-    $(document).ready(function () {
-        const apiBaseUrl = "https://localhost:7258/api";
-        const userToken = localStorage.getItem("token");
+﻿@{
+    ViewData["Title"] = "Anket Soruları ve Şıklar";
+}
 
-        // URL'den Anket ID'sini al
-        const pathParts = window.location.pathname.split('/');
-        const currentSurveyId = parseInt(pathParts[pathParts.length - 1]);
+<style>
+    li.option-item {
+        cursor: pointer;
+        transition: 0.2s ease-in-out;
+        border-left: 5px solid transparent !important;
+    }
 
-        if (!userToken || isNaN(currentSurveyId)) {
-            window.location.href = "/Surveys";
-            return;
+        li.option-item:hover {
+            background-color: #f8f9fc !important;
+            border-left: 5px solid #4e73df !important;
         }
 
-        // JWT Decode İşlemi
-        function parseJwt(token) {
-            try {
-                const base64Url = token.split('.')[1];
-                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                return JSON.parse(decodeURIComponent(window.atob(base64).split('').map(function(c) {
-                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-                }).join('')));
-            } catch (e) { return null; }
-        }
+    li.option-selected {
+        background-color: #d1ecf1 !important;
+        border-left: 5px solid #0c5460 !important;
+        font-weight: bold;
+        color: #0c5460 !important;
+    }
+</style>
 
-        const tokenPayload = parseJwt(userToken);
-        const userId = tokenPayload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"]
-                        || tokenPayload["nameid"] || tokenPayload["Id"];
-        const userRoles = tokenPayload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
-        const isUserAdmin = userRoles && (userRoles === "Admin" || userRoles.includes("Admin"));
-        let canManageSurvey = false;
+<div class="row">
+    <div class="col-md-8" id="questionsColumn">
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h4 mb-0 text-gray-800 font-weight-bold">
+                <i class="fas fa-list-ol mr-2 text-primary"></i>Sorular ve Cevap Şıkları
+            </h1>
+            <a href="/admin/surveys" class="btn btn-sm btn-secondary shadow-sm">
+                <i class="fas fa-arrow-left fa-sm text-white-50 mr-1"></i> Anketlere Dön
+            </a>
+        </div>
+        <div id="questionsListArea">
+            <div class="text-center text-muted my-4" id="loadingSpinner">
+                <i class="fas fa-spinner fa-spin fa-2x mb-2"></i><p>Sorular Yükleniyor...</p>
+            </div>
+        </div>
+    </div>
 
-        // Anket sahibi mi veya admin mi kontrol et
-        $.ajax({
-            url: apiBaseUrl + "/Survey/GetById/" + currentSurveyId,
-            type: "GET",
-            headers: { "Authorization": "Bearer " + userToken },
-            success: function (survey) {
-                const ownerId = survey.userId || survey.appUserId || survey.UserId || survey.AppUserId;
-                if (isUserAdmin || ownerId == userId) {
-                    canManageSurvey = true;
-                    $("#adminActionPanel").fadeIn();
-                } else {
-                    $("#questionsColumn").removeClass("col-md-8").addClass("col-md-12");
-                }
-                fetchSurveyQuestions();
-            },
-            error: function () {
-                // Yetkilendirme hatası olsa bile soruları göstermeye çalış
-                fetchSurveyQuestions();
+    <div class="col-md-4" id="adminActionPanel" style="display:none;">
+        <div class="card shadow mb-4 border-bottom-success position-sticky" style="top: 1.5rem;">
+            <div class="card-header py-3 bg-white">
+                <h6 class="m-0 font-weight-bold text-success">
+                    <i class="fas fa-plus-circle mr-2"></i>Yeni Soru Ekle
+                </h6>
+            </div>
+            <div class="card-body bg-light">
+                <form id="frmNewQuestion">
+                    <div class="form-group">
+                        <textarea class="form-control shadow-sm" id="txtQuestionContent" rows="4"
+                                  placeholder="Ankete eklenecek soruyu buraya yazın..."></textarea>
+                    </div>
+                    <button type="button" class="btn btn-success btn-block shadow-sm font-weight-bold" id="btnSaveQuestion">
+                        <i class="fa fa-save mr-1"></i> Soruyu Ankete Ekle
+                    </button>
+                </form>
+                <div id="statusAlert" class="mt-3" style="display:none;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            const apiBaseUrl = "https://localhost:7258/api";
+            const userToken = localStorage.getItem("token");
+
+            const pathParts = window.location.pathname.split('/');
+            const currentSurveyId = parseInt(pathParts[pathParts.length - 1]);
+
+            if (!userToken || isNaN(currentSurveyId)) {
+                window.location.href = "/Surveys";
+                return;
             }
-        });
 
-        // 1. Soruları Getir
-        function fetchSurveyQuestions() {
+            function parseJwt(token) {
+                try {
+                    const base64Url = token.split('.')[1];
+                    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                    return JSON.parse(decodeURIComponent(window.atob(base64).split('').map(function(c) {
+                        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                    }).join('')));
+                } catch (e) { return null; }
+            }
+
+            const tokenPayload = parseJwt(userToken);
+            const userId = tokenPayload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"]
+                            || tokenPayload["nameid"] || tokenPayload["Id"];
+            const userRoles = tokenPayload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+            const isUserAdmin = userRoles && (userRoles === "Admin" || userRoles.includes("Admin"));
+            let canManageSurvey = false;
+
             $.ajax({
-                url: apiBaseUrl + "/Question/GetQuestionsBySurveyId/" + currentSurveyId,
+                url: apiBaseUrl + "/Survey/GetById/" + currentSurveyId,
                 type: "GET",
                 headers: { "Authorization": "Bearer " + userToken },
-                success: function (data) {
-                    $("#loadingSpinner").hide();
-                    const listArea = $("#questionsListArea").empty();
-
-                    if (!data || data.length === 0) {
-                        listArea.append('<div class="alert alert-info shadow-sm">Bu ankete henüz soru eklenmemiş.</div>');
-                        return;
+                success: function (survey) {
+                    const ownerId = survey.userId || survey.appUserId || survey.UserId || survey.AppUserId;
+                    if (isUserAdmin || ownerId == userId) {
+                        canManageSurvey = true;
+                        $("#adminActionPanel").fadeIn();
+                    } else {
+                        $("#questionsColumn").removeClass("col-md-8").addClass("col-md-12");
                     }
-
-                    $.each(data, function (index, question) {
-                        // ✅ camelCase alan adlarını tek tip kullan
-                        const qId = question.id;
-                        const qText = question.text || "Soru içeriği boş";
-
-                        const deleteBtn = canManageSurvey
-                            ? `<button class="btn btn-danger btn-sm btnDeleteQuestion shadow-sm" data-id="${qId}"><i class="fas fa-trash-alt"></i></button>`
-                            : '';
-
-                        const optionFormHtml = canManageSurvey
-                            ? `<div class="input-group mt-3 w-75">
-                                <input type="text" class="form-control bg-light" id="inputOpt_${qId}" placeholder="Yeni şık yazın...">
-                                <div class="input-group-append">
-                                    <button class="btn btn-success btnAddOption" data-questionid="${qId}">Ekle</button>
-                                </div>
-                               </div>`
-                            : '';
-
-                        const saveAnswerBtn = !canManageSurvey
-                            ? `<button class="btn btn-primary btn-sm mt-3 btnSubmitAnswer" data-questionid="${qId}"><i class="fas fa-paper-plane mr-1"></i> Seçtiğim Cevabı Kaydet</button>`
-                            : '';
-
-                        const cardHtml = `
-                            <div class="card shadow-sm mb-4 border-0">
-                                <div class="card-header py-3 bg-primary d-flex justify-content-between align-items-center">
-                                    <h6 class="m-0 font-weight-bold text-white">Soru ${index + 1}: ${qText}</h6>
-                                    ${deleteBtn}
-                                </div>
-                                <div class="card-body border-left-primary">
-                                    <h6 class="font-weight-bold text-success mb-3">Cevap Şıkları:</h6>
-                                    <ul class="list-group mb-2" id="optionContainer_${qId}"></ul>
-                                    ${optionFormHtml}
-                                    ${saveAnswerBtn}
-                                </div>
-                            </div>`;
-
-                        listArea.append(cardHtml);
-                        fetchQuestionOptions(qId);
-                    });
+                    fetchSurveyQuestions();
                 },
                 error: function () {
-                    $("#loadingSpinner").hide();
-                    $("#questionsListArea").html('<div class="alert alert-danger">Sorular yüklenirken hata oluştu.</div>');
+                    fetchSurveyQuestions();
                 }
             });
-        }
 
-        // 2. Şıkları Getir
-        function fetchQuestionOptions(questionId) {
-            $.ajax({
-                url: apiBaseUrl + "/QuestionOption/GetOptionsByQuestionId/" + questionId,
-                type: "GET",
-                headers: { "Authorization": "Bearer " + userToken },
-                success: function (options) {
-                    const ul = $("#optionContainer_" + questionId).empty();
-                    const labels = ["A", "B", "C", "D", "E", "F"];
+            function fetchSurveyQuestions() {
+                $.ajax({
+                    url: apiBaseUrl + "/Question/GetQuestionsBySurveyId/" + currentSurveyId,
+                    type: "GET",
+                    headers: { "Authorization": "Bearer " + userToken },
+                    success: function (data) {
+                        $("#loadingSpinner").hide();
+                        const listArea = $("#questionsListArea").empty();
 
-                    if (options.length === 0) {
-                        ul.append('<li class="list-group-item text-muted small border-0">Henüz şık eklenmemiş.</li>');
-                    } else {
-                        $.each(options, function (i, opt) {
-                            const optId = opt.id;
-                            const optText = opt.optionText || opt.OptionText;
+                        if (!data || data.length === 0) {
+                            listArea.append('<div class="alert alert-info shadow-sm">Bu ankete henüz soru eklenmemiş.</div>');
+                            return;
+                        }
 
-                            const delBtn = canManageSurvey
-                                ? `<button class="btn btn-sm btn-outline-danger btnDeleteOption" data-id="${optId}" data-question="${questionId}"><i class="fas fa-times"></i></button>`
+                        $.each(data, function (index, question) {
+                            const qId = question.id;
+                            const qText = question.text || "Soru içeriği boş";
+
+                            const deleteBtn = canManageSurvey
+                                ? `<button class="btn btn-danger btn-sm btnDeleteQuestion shadow-sm" data-id="${qId}"><i class="fas fa-trash-alt"></i></button>`
                                 : '';
 
-                            const li = `
-                                <li class="list-group-item d-flex justify-content-between align-items-center mb-1 shadow-sm rounded option-item" data-id="${optId}">
-                                    <span><strong class="text-primary">${labels[i] || "*"}-)</strong> ${optText}</span>
-                                    ${delBtn}
-                                </li>`;
-                            ul.append(li);
+                            const optionFormHtml = canManageSurvey
+                                ? `<div class="input-group mt-3 w-75">
+                                    <input type="text" class="form-control bg-light" id="inputOpt_${qId}" placeholder="Yeni şık yazın...">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-success btnAddOption" data-questionid="${qId}">Ekle</button>
+                                    </div>
+                                   </div>`
+                                : '';
+
+                            const saveAnswerBtn = !canManageSurvey
+                                ? `<button class="btn btn-primary btn-sm mt-3 btnSubmitAnswer" data-questionid="${qId}"><i class="fas fa-paper-plane mr-1"></i> Seçtiğim Cevabı Kaydet</button>`
+                                : '';
+
+                            const cardHtml = `
+                                <div class="card shadow-sm mb-4 border-0">
+                                    <div class="card-header py-3 bg-primary d-flex justify-content-between align-items-center">
+                                        <h6 class="m-0 font-weight-bold text-white">Soru ${index + 1}: ${qText}</h6>
+                                        ${deleteBtn}
+                                    </div>
+                                    <div class="card-body border-left-primary">
+                                        <h6 class="font-weight-bold text-success mb-3">Cevap Şıkları:</h6>
+                                        <ul class="list-group mb-2" id="optionContainer_${qId}"></ul>
+                                        ${optionFormHtml}
+                                        ${saveAnswerBtn}
+                                    </div>
+                                </div>`;
+
+                            listArea.append(cardHtml);
+                            fetchQuestionOptions(qId);
                         });
+                    },
+                    error: function () {
+                        $("#loadingSpinner").hide();
+                        $("#questionsListArea").html('<div class="alert alert-danger">Sorular yüklenirken hata oluştu.</div>');
                     }
-                }
-            });
-        }
-
-        // 3. Şık Seçme İşlemi
-        $(document).on("click", "li.option-item", function (e) {
-            if ($(e.target).closest('button').length > 0) return;
-            $(this).siblings().removeClass("option-selected");
-            $(this).addClass("option-selected");
-        });
-
-        // 4. Cevabı Kaydet (POST) – zaten düzeltilmişti, hata mesajı ekledim
-        $(document).on("click", ".btnSubmitAnswer", function () {
-            const questionId = $(this).data("questionid");
-            const selectedLi = $("#optionContainer_" + questionId + " .option-selected");
-
-            if (selectedLi.length === 0) {
-                alert("Lütfen bir seçenek işaretleyin!");
-                return;
+                });
             }
 
-            const optionId = selectedLi.data("id");
-            const actionBtn = $(this);
-            const oldText = actionBtn.html();
+            function fetchQuestionOptions(questionId) {
+                $.ajax({
+                    url: apiBaseUrl + "/QuestionOption/GetOptionsByQuestionId/" + questionId,
+                    type: "GET",
+                    headers: { "Authorization": "Bearer " + userToken },
+                    success: function (options) {
+                        const ul = $("#optionContainer_" + questionId).empty();
+                        const labels = ["A", "B", "C", "D", "E", "F"];
 
-            actionBtn.html('Kaydediliyor...').prop("disabled", true);
+                        if (options.length === 0) {
+                            ul.append('<li class="list-group-item text-muted small border-0">Henüz şık eklenmemiş.</li>');
+                        } else {
+                            $.each(options, function (i, opt) {
+                                const optId = opt.id;
+                                const optText = opt.optionText || opt.OptionText;
 
-            const answerPayload = {
-                QuestionId: parseInt(questionId),
-                SelectedOptionId: parseInt(optionId),
-                SurveyId: currentSurveyId,
-                UserId: userId
-            };
+                                const delBtn = canManageSurvey
+                                    ? `<button class="btn btn-sm btn-outline-danger btnDeleteOption" data-id="${optId}" data-question="${questionId}"><i class="fas fa-times"></i></button>`
+                                    : '';
 
-            $.ajax({
-                url: apiBaseUrl + "/Answer/Add",
-                type: "POST",
-                contentType: "application/json",
-                headers: { "Authorization": "Bearer " + userToken },
-                data: JSON.stringify(answerPayload),
-                success: function () {
-                    actionBtn.html('<i class="fas fa-check"></i> Kaydedildi')
-                            .removeClass('btn-primary').addClass('btn-success');
-                    $("#optionContainer_" + questionId + " li").css("pointer-events", "none");
-                },
-                error: function (xhr) {
-                    alert("Hata: Cevap gönderilemedi! (" + (xhr.responseJSON?.message || xhr.statusText) + ")");
-                    actionBtn.html(oldText).prop("disabled", false);
-                }
-            });
-        });
-
-        // --- Admin / Soru Sahibi Fonksiyonları ---
-
-        // ✅ Yeni soru ekleme – hata yönetimi eklendi, buton durumu korunuyor
-        $("#btnSaveQuestion").click(function () {
-            const text = $("#txtQuestionContent").val().trim();
-            if (!text) {
-                showAlert("Soru metni boş olamaz!", "warning");
-                return;
+                                const li = `
+                                    <li class="list-group-item d-flex justify-content-between align-items-center mb-1 shadow-sm rounded option-item" data-id="${optId}">
+                                        <span><strong class="text-primary">${labels[i] || "*"}-)</strong> ${optText}</span>
+                                        ${delBtn}
+                                    </li>`;
+                                ul.append(li);
+                            });
+                        }
+                    }
+                });
             }
 
-            const btn = $(this);
-            btn.prop("disabled", true).html('<i class="fas fa-spinner fa-spin"></i> Ekleniyor...');
+            $(document).on("click", "li.option-item", function (e) {
+                if ($(e.target).closest('button').length > 0) return;
+                $(this).siblings().removeClass("option-selected");
+                $(this).addClass("option-selected");
+            });
 
-            $.ajax({
-                url: apiBaseUrl + "/Question/Add",
-                type: "POST",
-                contentType: "application/json",
-                headers: { "Authorization": "Bearer " + userToken },
-                data: JSON.stringify({ SurveyId: currentSurveyId, Text: text }),
-                success: function () {
-                    $("#txtQuestionContent").val("");
-                    fetchSurveyQuestions();
-                    showAlert("Soru başarıyla eklendi.", "success");
-                    btn.prop("disabled", false).html('<i class="fa fa-save mr-1"></i> Soruyu Ankete Ekle');
-                },
-                error: function (xhr) {
-                    const msg = xhr.responseJSON?.message || xhr.statusText;
-                    showAlert("Soru eklenemedi! " + msg, "danger");
-                    btn.prop("disabled", false).html('<i class="fa fa-save mr-1"></i> Soruyu Ankete Ekle');
+            $(document).on("click", ".btnSubmitAnswer", function () {
+                const questionId = $(this).data("questionid");
+                const selectedLi = $("#optionContainer_" + questionId + " .option-selected");
+
+                if (selectedLi.length === 0) {
+                    alert("Lütfen bir seçenek işaretleyin!");
+                    return;
                 }
+
+                const optionId = selectedLi.data("id");
+                const actionBtn = $(this);
+                const oldText = actionBtn.html();
+
+                actionBtn.html('Kaydediliyor...').prop("disabled", true);
+
+                const answerPayload = {
+                    QuestionId: parseInt(questionId),
+                    SelectedOptionId: parseInt(optionId),
+                    SurveyId: currentSurveyId,
+                    UserId: userId
+                };
+
+                $.ajax({
+                    url: apiBaseUrl + "/Answer/Add",
+                    type: "POST",
+                    contentType: "application/json",
+                    headers: { "Authorization": "Bearer " + userToken },
+                    data: JSON.stringify(answerPayload),
+                    success: function () {
+                        actionBtn.html('<i class="fas fa-check"></i> Kaydedildi')
+                                .removeClass('btn-primary').addClass('btn-success');
+                        $("#optionContainer_" + questionId + " li").css("pointer-events", "none");
+                    },
+                    error: function (xhr) {
+                        alert("Hata: Cevap gönderilemedi! (" + (xhr.responseJSON?.message || xhr.statusText) + ")");
+                        actionBtn.html(oldText).prop("disabled", false);
+                    }
+                });
             });
-        });
 
-        $(document).on("click", ".btnAddOption", function () {
-            const qId = $(this).data("questionid");
-            const optText = $("#inputOpt_" + qId).val().trim();
-            if (!optText) return;
-
-            $.ajax({
-                url: apiBaseUrl + "/QuestionOption/Add",
-                type: "POST",
-                contentType: "application/json",
-                headers: { "Authorization": "Bearer " + userToken },
-                data: JSON.stringify({ QuestionId: qId, OptionText: optText }),
-                success: function () {
-                    $("#inputOpt_" + qId).val("");
-                    fetchQuestionOptions(qId);
+            // ✅ Soru ekleme (QuestionOptions: [] eklendi)
+            $("#btnSaveQuestion").click(function () {
+                const text = $("#txtQuestionContent").val().trim();
+                if (!text) {
+                    showAlert("Soru metni boş olamaz!", "warning");
+                    return;
                 }
-            });
-        });
 
-        $(document).on("click", ".btnDeleteQuestion", function () {
-            if (!confirm("Bu soruyu silmek istediğinize emin misiniz?")) return;
-            const qId = $(this).data("id");
-            $.ajax({
-                url: apiBaseUrl + "/Question/Delete/" + qId,
-                type: "DELETE",
-                headers: { "Authorization": "Bearer " + userToken },
-                success: function () { fetchSurveyQuestions(); }
-            });
-        });
+                const btn = $(this);
+                btn.prop("disabled", true).html('<i class="fas fa-spinner fa-spin"></i> Ekleniyor...');
 
-        $(document).on("click", ".btnDeleteOption", function (e) {
-            e.stopPropagation();
-            const oId = $(this).data("id");
-            const qId = $(this).data("question");
-            $.ajax({
-                url: apiBaseUrl + "/QuestionOption/Delete/" + oId,
-                type: "DELETE",
-                headers: { "Authorization": "Bearer " + userToken },
-                success: function () { fetchQuestionOptions(qId); }
+                $.ajax({
+                    url: apiBaseUrl + "/Question/Add",
+                    type: "POST",
+                    contentType: "application/json",
+                    headers: { "Authorization": "Bearer " + userToken },
+                    data: JSON.stringify({
+                        SurveyId: currentSurveyId,
+                        Text: text,
+                        QuestionOptions: []   // ⚡ Boş liste gönderiliyor
+                    }),
+                    success: function () {
+                        $("#txtQuestionContent").val("");
+                        fetchSurveyQuestions();
+                        showAlert("Soru başarıyla eklendi.", "success");
+                        btn.prop("disabled", false).html('<i class="fa fa-save mr-1"></i> Soruyu Ankete Ekle');
+                    },
+                    error: function (xhr) {
+                        const msg = xhr.responseJSON?.message || xhr.statusText;
+                        showAlert("Soru eklenemedi! " + msg, "danger");
+                        btn.prop("disabled", false).html('<i class="fa fa-save mr-1"></i> Soruyu Ankete Ekle');
+                    }
+                });
             });
-        });
 
-        function showAlert(msg, type) {
-            const alertEl = $("#statusAlert");
-            alertEl.removeClass()
-                   .addClass("alert alert-" + type + " shadow-sm")
-                   .html('<i class="fas fa-info-circle mr-1"></i>' + msg)
-                   .fadeIn(300);
-            clearTimeout(alertEl.data("timeout"));
-            alertEl.data("timeout", setTimeout(() => alertEl.fadeOut(500), 4000));
-        }
-    });
-</script>
+            $(document).on("click", ".btnAddOption", function () {
+                const qId = $(this).data("questionid");
+                const optText = $("#inputOpt_" + qId).val().trim();
+                if (!optText) return;
+
+                $.ajax({
+                    url: apiBaseUrl + "/QuestionOption/Add",
+                    type: "POST",
+                    contentType: "application/json",
+                    headers: { "Authorization": "Bearer " + userToken },
+                    data: JSON.stringify({ QuestionId: qId, OptionText: optText }),
+                    success: function () {
+                        $("#inputOpt_" + qId).val("");
+                        fetchQuestionOptions(qId);
+                    }
+                });
+            });
+
+            $(document).on("click", ".btnDeleteQuestion", function () {
+                if (!confirm("Bu soruyu silmek istediğinize emin misiniz?")) return;
+                const qId = $(this).data("id");
+                $.ajax({
+                    url: apiBaseUrl + "/Question/Delete/" + qId,
+                    type: "DELETE",
+                    headers: { "Authorization": "Bearer " + userToken },
+                    success: function () { fetchSurveyQuestions(); }
+                });
+            });
+
+            $(document).on("click", ".btnDeleteOption", function (e) {
+                e.stopPropagation();
+                const oId = $(this).data("id");
+                const qId = $(this).data("question");
+                $.ajax({
+                    url: apiBaseUrl + "/QuestionOption/Delete/" + oId,
+                    type: "DELETE",
+                    headers: { "Authorization": "Bearer " + userToken },
+                    success: function () { fetchQuestionOptions(qId); }
+                });
+            });
+
+            function showAlert(msg, type) {
+                const alertEl = $("#statusAlert");
+                alertEl.removeClass()
+                       .addClass("alert alert-" + type + " shadow-sm")
+                       .html('<i class="fas fa-info-circle mr-1"></i>' + msg)
+                       .fadeIn(300);
+                clearTimeout(alertEl.data("timeout"));
+                alertEl.data("timeout", setTimeout(() => alertEl.fadeOut(500), 4000));
+            }
+        });
+    </script>
+}
