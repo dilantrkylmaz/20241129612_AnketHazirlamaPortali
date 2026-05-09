@@ -75,7 +75,8 @@
     <script>
         $(document).ready(function () {
             // 🛡️ DÜZELTME 1: API Adresini diğer sayfalardaki gibi sabitledik
-            var apiBaseUrl = "https://localhost:7258/api";
+                    // Layout'tan gelen global API adresini kullanıyoruz. Böylece port değişse bile bozulmaz.
+            var apiBaseUrl = API_BASE_URL;
             var token = localStorage.getItem("token");
 
             if (!token) { window.location.href = "/Login"; return; }
@@ -134,14 +135,15 @@
                 });
             }
 
-            // 🛡️ DÜZELTME 2: Kategori Eklerken 400 Hatasını Önleyen Yapı
-            $("#btnSave").click(function () {
-                var name = $("#txtName").val();
-                if (!name) { showResult("Lütfen kategori adı giriniz!", "warning"); return; }
+                    // 🛡️ DÜZELTME 2: Kategori Eklerken 400 Hatasını Önleyen Yapı
+                    $("#btnSave").click(function () {
+                        var name = $("#txtName").val();
+                        if (!name) { showResult("Lütfen kategori adı giriniz!", "warning"); return; }
 
                 var categoryData = {
+                    id: parseInt(rawId), // Ekleme (Add) kısmında bu satır yoktur, sadece Update kısmında vardır.
                     name: name,
-                    description: " ", // 400 Hatasını önlemek için boşluk gönderiyoruz
+                    description: "Açıklama belirtilmedi", // 🚀 DÜZELTME: Sadece boşluk yerine geçerli bir metin atadık.
                     isActive: $("#cbIsActive").is(":checked")
                 };
 

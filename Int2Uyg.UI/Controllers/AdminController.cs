@@ -55,5 +55,12 @@ namespace Int2Uyg.UI.Controllers
             ViewBag.ApiBaseUrl = _configuration["ApiBaseUrl"];
             return View();
         }
+        // GET /admin/profile
+        [Route("profile")]
+        public IActionResult Profile()
+        {
+            ViewBag.ApiBaseUrl = _configuration["ApiBaseUrl"];
+            return View();
+        }
     }
 }
