@@ -28,18 +28,21 @@ namespace Int2Uyg.API.Controllers
             _mapper = mapper;
         }
 
+        // CategoryController.cs > List()
         [HttpGet]
         [AllowAnonymous]
         public async Task<List<CategoryDto>> List()
         {
             var categories = await _categoryRepository.GetAllAsync();
-            var sortedCategories = categories.OrderByDescending(c => c.Id).ToList();
-            var categoryDtos = _mapper.Map<List<CategoryDto>>(sortedCategories);
+            // Sadece aktif ve silinmemiş olanları al
+            var filtered = categories.Where(c => c.IsActive && !c.IsDeleted)
+                                     .OrderByDescending(c => c.Id);
+            var categoryDtos = _mapper.Map<List<CategoryDto>>(filtered);
 
             foreach (var cat in categoryDtos)
             {
                 cat.SurveyCount = await _surveyRepository
-                    .Where(s => s.CategoryId == cat.Id)
+                    .Where(s => s.CategoryId == cat.Id && !s.IsDeleted)
                     .CountAsync();
             }
 

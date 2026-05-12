@@ -18,20 +18,16 @@ namespace Int2Uyg.API.Repositories
             await _context.SaveChangesAsync();
         }
 
+        // QuestionRepository.cs
         public override async Task DeleteAsync(int id)
         {
             var entity = await _context.Questions.FindAsync(id);
             if (entity != null)
             {
-                var options = await _context.QuestionOptions.Where(o => o.QuestionId == id).ToListAsync();
-                if (options.Any())
-                {
-                    _context.QuestionOptions.RemoveRange(options);
-                }
-
-                _context.Questions.Remove(entity);
-                await _context.SaveChangesAsync(); 
+                entity.IsDeleted = true;
+                _context.Questions.Update(entity);
+                await _context.SaveChangesAsync();
             }
         }
     }
-}
+    }

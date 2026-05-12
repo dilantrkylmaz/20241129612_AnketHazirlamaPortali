@@ -303,16 +303,25 @@
                 });
             });
 
-            $(document).on("click", ".btnDeleteQuestion", function () {
-                if (!confirm("Bu soruyu silmek istediğinize emin misiniz?")) return;
-                const qId = $(this).data("id");
-                $.ajax({
-                    url: apiBaseUrl + "/Question/Delete/" + qId,
-                    type: "DELETE",
-                    headers: { "Authorization": "Bearer " + userToken },
-                    success: function () { fetchSurveyQuestions(); }
-                });
+        $(document).on("click", ".btnDeleteQuestion", function () {
+            if (!confirm("Bu soruyu silmek istediğinize emin misiniz?")) return;
+            const qId = $(this).data("id");
+            const btn = $(this);
+            btn.prop("disabled", true).html('<i class="fas fa-spinner fa-spin"></i>');
+
+            $.ajax({
+                url: apiBaseUrl + "/Question/Delete/" + qId,
+                type: "DELETE",
+                headers: { "Authorization": "Bearer " + userToken },
+                success: function () {
+                    fetchSurveyQuestions();
+                },
+                error: function(xhr) {
+                    alert("Silme başarısız! " + (xhr.responseJSON?.message || "Sunucu hatası"));
+                    btn.prop("disabled", false).html('<i class="fas fa-trash-alt"></i>');
+                }
             });
+        });
 
             $(document).on("click", ".btnDeleteOption", function (e) {
                 e.stopPropagation();
