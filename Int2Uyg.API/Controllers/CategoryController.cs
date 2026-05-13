@@ -28,7 +28,6 @@ namespace Int2Uyg.API.Controllers
             _mapper = mapper;
         }
 
-        // CategoryController.cs > List()
         [HttpGet]
         [AllowAnonymous]
         public async Task<List<CategoryDto>> List()
@@ -60,15 +59,13 @@ namespace Int2Uyg.API.Controllers
         public async Task<List<SurveyDto>> SurveyList(int id)
         {
             var surveysQuery = _surveyRepository
-                .Where(s => s.CategoryId == id)
+                .Where(s => s.CategoryId == id && s.IsActive && !s.IsDeleted) // Silinmiş anketleri getirmemek için
                 .Include(i => i.Category)
                 .Include(i => i.User);
 
             var surveys = await surveysQuery.ToListAsync();
             var surveyDtos = _mapper.Map<List<SurveyDto>>(surveys);
 
-            // ✅ BUG #5 FIX: Removed incorrect filter that was hiding other users' surveys.
-            // All authenticated users can now see all surveys in a category.
             return surveyDtos;
         }
 
@@ -76,10 +73,8 @@ namespace Int2Uyg.API.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<ResultDto> Add(CategoryDto dto)
         {
-            // ✅ Her istek için yeni ResultDto (thread‑safe)
             var result = new ResultDto();
 
-            // ✅ Boş ad kontrolü
             if (string.IsNullOrWhiteSpace(dto.Name))
             {
                 result.Status = false;
@@ -89,7 +84,6 @@ namespace Int2Uyg.API.Controllers
 
             var categories = await _categoryRepository.GetAllAsync();
 
-            // ✅ Null‑safe karşılaştırma
             if (categories.Any(c =>
                 c.Name != null &&
                 c.Name.Equals(dto.Name, StringComparison.OrdinalIgnoreCase)))
@@ -111,10 +105,8 @@ namespace Int2Uyg.API.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<ResultDto> Update(CategoryDto dto)
         {
-            // ✅ Her istek için yeni ResultDto (thread‑safe)
             var result = new ResultDto();
 
-            // ✅ Boş ad kontrolü
             if (string.IsNullOrWhiteSpace(dto.Name))
             {
                 result.Status = false;
@@ -124,7 +116,6 @@ namespace Int2Uyg.API.Controllers
 
             var categories = await _categoryRepository.GetAllAsync();
 
-            // ✅ Null‑safe karşılaştırma (kendisi hariç aynı isim var mı?)
             if (categories.Any(c =>
                 c.Id != dto.Id &&
                 c.Name != null &&
@@ -157,24 +148,24 @@ namespace Int2Uyg.API.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<ResultDto> Delete(int id)
         {
-            // ✅ Her istek için yeni ResultDto (thread‑safe)
             var result = new ResultDto();
 
-            var hasSurveys = await _surveyRepository
-                .Where(s => s.CategoryId == id)
-                .AnyAsync();
-
-            if (hasSurveys)
+            var category = await _categoryRepository.GetByIdAsync(id);
+            if (category == null)
             {
                 result.Status = false;
-                result.Message = "Üzerinde Anket Kaydı Olan Kategori Silinemez! " +
-                                 "Lütfen önce içindeki anketleri silin.";
+                result.Message = "Silinmek istenen kategori bulunamadı.";
                 return result;
             }
 
-            await _categoryRepository.DeleteAsync(id);
+            // Hard Delete (Veritabanından uçurmak) yerine Soft Delete yapıyoruz
+            category.IsDeleted = true;
+            category.IsActive = false;
+
+            await _categoryRepository.UpdateAsync(category);
+
             result.Status = true;
-            result.Message = "Kategori Silindi";
+            result.Message = "Kategori başarıyla silindi (Pasife alındı).";
             return result;
         }
     }
