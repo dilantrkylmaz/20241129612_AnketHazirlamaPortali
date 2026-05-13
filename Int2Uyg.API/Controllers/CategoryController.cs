@@ -33,7 +33,6 @@ namespace Int2Uyg.API.Controllers
         public async Task<List<CategoryDto>> List()
         {
             var categories = await _categoryRepository.GetAllAsync();
-            // Sadece aktif ve silinmemiş olanları al
             var filtered = categories.Where(c => c.IsActive && !c.IsDeleted)
                                      .OrderByDescending(c => c.Id);
             var categoryDtos = _mapper.Map<List<CategoryDto>>(filtered);
@@ -59,7 +58,7 @@ namespace Int2Uyg.API.Controllers
         public async Task<List<SurveyDto>> SurveyList(int id)
         {
             var surveysQuery = _surveyRepository
-                .Where(s => s.CategoryId == id && s.IsActive && !s.IsDeleted) // Silinmiş anketleri getirmemek için
+                .Where(s => s.CategoryId == id && s.IsActive && !s.IsDeleted) 
                 .Include(i => i.Category)
                 .Include(i => i.User);
 
@@ -85,6 +84,7 @@ namespace Int2Uyg.API.Controllers
             var categories = await _categoryRepository.GetAllAsync();
 
             if (categories.Any(c =>
+                !c.IsDeleted && 
                 c.Name != null &&
                 c.Name.Equals(dto.Name, StringComparison.OrdinalIgnoreCase)))
             {
@@ -94,6 +94,9 @@ namespace Int2Uyg.API.Controllers
             }
 
             var category = _mapper.Map<Category>(dto);
+
+            category.Id = 0;
+
             await _categoryRepository.AddAsync(category);
 
             result.Status = true;
@@ -117,6 +120,7 @@ namespace Int2Uyg.API.Controllers
             var categories = await _categoryRepository.GetAllAsync();
 
             if (categories.Any(c =>
+                !c.IsDeleted && 
                 c.Id != dto.Id &&
                 c.Name != null &&
                 c.Name.Equals(dto.Name, StringComparison.OrdinalIgnoreCase)))
@@ -158,7 +162,6 @@ namespace Int2Uyg.API.Controllers
                 return result;
             }
 
-            // Hard Delete (Veritabanından uçurmak) yerine Soft Delete yapıyoruz
             category.IsDeleted = true;
             category.IsActive = false;
 
