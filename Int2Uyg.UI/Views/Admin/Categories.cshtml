@@ -42,7 +42,6 @@
                         <input type="text" class="form-control" id="txtName" placeholder="Örn: İnsan Kaynakları" required>
                     </div>
 
-                    <!-- ✅ YENİ: Description alanı eklendi -->
                     <div class="form-group">
                         <label class="font-weight-bold text-dark small">Açıklama</label>
                         <textarea class="form-control" id="txtDescription" rows="2"
@@ -82,13 +81,11 @@
 @section Scripts {
     <script>
         $(document).ready(function () {
-            // ✅ DÜZELTME: API adresini sabit olarak tanımladık
             var apiBaseUrl = "https://localhost:7258/api";
             var token = localStorage.getItem("token");
 
             if (!token) { window.location.href = "/Login"; return; }
 
-            // ✅ DÜZELTME: JWT decode için güvenli fonksiyon
             function parseJwtSafe(token) {
                 try {
                     var base64Url = token.split('.')[1];
@@ -104,7 +101,6 @@
             var roles = payload ? payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] : null;
             var isAdmin = roles && (roles === "Admin" || roles.includes("Admin"));
 
-            // Eğer Admin değilse form alanını gizle
             if (!isAdmin) {
                 $("#formArea").remove();
                 $("#listArea").removeClass("col-md-8").addClass("col-md-12");
@@ -123,10 +119,8 @@
                         $("#tbCategoryList tbody").empty();
 
                         $.each(data, function (i, item) {
-                            // ✅ DÜZELTME: camelCase formatına güveniyoruz
                             var name = item.name || "";
                             var description = (item.description || "—");
-                            // Uzun açıklamaları kısalt
                             var shortDesc = description.length > 50
                                 ? description.substring(0, 47) + "..."
                                 : description;
@@ -159,7 +153,6 @@
                 });
             }
 
-            // ✅ DÜZELTME: Kaydet butonu - artık description'ı formdan alıyor
             $("#btnSave").click(function () {
                 var name = $("#txtName").val().trim();
                 var description = $("#txtDescription").val().trim();
@@ -188,7 +181,6 @@
                     success: function (d) {
                         btn.prop("disabled", false).html('<i class="fa fa-save mr-1"></i> Kaydet');
 
-                        // ✅ DÜZELTME: Hem camelCase hem PascalCase kontrolü
                         var success = d.status !== undefined ? d.status : d.Status;
                         var message = d.message !== undefined ? d.message : d.Message;
 
@@ -213,11 +205,9 @@
                 });
             });
 
-            // ✅ DÜZELTME: Düzenle butonu - formu dolduruyor
             $(document).on("click", ".btnEdit", function () {
                 var id = $(this).data("id");
 
-                // Butona loading efekti
                 var btn = $(this);
                 var originalHtml = btn.html();
                 btn.prop("disabled", true).html('<i class="fas fa-spinner fa-spin"></i>');
@@ -227,7 +217,6 @@
                     type: "GET",
                     headers: { "Authorization": "Bearer " + token },
                     success: function (d) {
-                        // ✅ DÜZELTME: camelCase kullanıyoruz (ASP.NET Core default)
                         $("#txtId").val(d.id);
                         $("#txtName").val(d.name || "");
                         $("#txtDescription").val(d.description || "");
@@ -246,7 +235,7 @@
                 });
             });
 
-            // ✅ DÜZELTME: Güncelleme işlemi
+
             $("#btnUpdate").click(function () {
                 var rawId = $("#txtId").val();
                 var name = $("#txtName").val().trim();
@@ -304,7 +293,6 @@
                 });
             });
 
-            // ✅ DÜZELTME: Silme işlemi - hata yönetimi eklendi
             $("#btnDelete").click(function () {
                 var id = parseInt($("#txtId").val());
                 if (!id) {
@@ -367,7 +355,6 @@
                     .removeClass().addClass("alert alert-" + type + " shadow-sm")
                     .html('<i class="fas fa-info-circle mr-2"></i>' + message).fadeIn(500);
 
-                // Başarılı mesajları 3 saniye, hata mesajlarını 6 saniye göster
                 var timeout = (type === "success") ? 3000 : 6000;
                 setTimeout(function() { $("#divResult").fadeOut(1000); }, timeout);
             }

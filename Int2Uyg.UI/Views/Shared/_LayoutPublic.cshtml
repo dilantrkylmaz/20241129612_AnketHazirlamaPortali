@@ -41,7 +41,6 @@
             flex-direction: column;
         }
 
-        /* ?? NAVBAR ?? */
         .public-navbar {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(12px);
@@ -81,7 +80,6 @@
             align-items: center;
         }
 
-        /* ?? ORTAK BUTON STÝLÝ (Giriþ Yap & Kaydol) ?? */
         .btn-login, .btn-register {
             background: transparent;
             color: var(--primary);
@@ -96,7 +94,7 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            min-width: 140px; /* eþit geniþlik */
+            min-width: 140px; 
         }
 
             .btn-login:hover, .btn-register:hover {
@@ -104,13 +102,11 @@
                 color: var(--primary);
             }
 
-        /* ?? MAIN CONTENT ?? */
         .public-main {
             flex: 1;
             padding: 2rem;
         }
 
-        /* ?? FOOTER ?? */
         .public-footer {
             background: var(--white);
             border-top: 1px solid rgba(108, 99, 255, 0.08);
@@ -120,7 +116,6 @@
             color: var(--muted);
         }
 
-        /* ?? DECORATIVE BG ?? */
         .bg-blob {
             position: fixed;
             border-radius: 50%;
@@ -156,11 +151,9 @@
 </head>
 
 <body>
-    <!-- Decorative blobs -->
     <div class="bg-blob bg-blob-1"></div>
     <div class="bg-blob bg-blob-2"></div>
 
-    <!-- Navbar -->
     <nav class="public-navbar">
         <div class="navbar-container">
             <a class="navbar-brand" href="/">
@@ -178,12 +171,10 @@
         </div>
     </nav>
 
-    <!-- Main content -->
     <main class="public-main content-wrapper">
         @RenderBody()
     </main>
 
-    <!-- Footer -->
     <footer class="public-footer">
         Anket Portalý &copy; @DateTime.Now.Year — Tüm haklarý saklýdýr.
     </footer>
@@ -195,11 +186,9 @@
         $(document).ready(function () {
             var token = localStorage.getItem("token");
 
-            // If user is already logged in and visits public pages, redirect to user area
             if (token) {
                 var currentPath = window.location.pathname.toLowerCase();
                 if (currentPath === "/" || currentPath === "/login" || currentPath === "/register" || currentPath === "/forgot-password") {
-                    // Check role and redirect
                     try {
                         function parseJwt(t) {
                             var b = t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
@@ -215,7 +204,6 @@
                             window.location.href = "/user";
                         }
                     } catch (e) {
-                        // If JWT parsing fails, clear token and stay on public page
                         localStorage.removeItem("token");
                     }
                 }

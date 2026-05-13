@@ -3,4 +3,4 @@
 GET {{Int2Uyg.API_HostAddress}}/weatherforecast/
 Accept: application/json
 
-###
+

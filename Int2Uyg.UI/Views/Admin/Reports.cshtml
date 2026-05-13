@@ -9,7 +9,6 @@
         </h1>
     </div>
 
-    <!-- Anket Seçimi -->
     <div class="card shadow mb-4">
         <div class="card-header py-3 bg-white">
             <h6 class="m-0 font-weight-bold text-primary">
@@ -30,12 +29,10 @@
         </div>
     </div>
 
-    <!-- Rapor İçeriği -->
     <div id="reportContent"></div>
 </div>
 
 @section Scripts {
-    <!-- Chart.js (zaten tema içinde var, ama emin olmak için ekledim) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
     <script>
@@ -44,7 +41,6 @@
             var token = localStorage.getItem("token");
             if (!token) { window.location.href = "/Login"; return; }
 
-            // Anketleri dropdown'a yükle
             $.ajax({
                 url: apiBaseUrl + "/Survey/List",
                 type: "GET",
@@ -100,7 +96,6 @@
                 html += '</div>';
                 $("#reportContent").html(html);
 
-                // Grafikleri çiz
                 $.each(report.questions, function (i, q) {
                     if (q.options.length === 0) return;
 

@@ -158,14 +158,12 @@
             var roles = payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
             var isAdmin = roles && (roles === "Admin" || roles.includes("Admin"));
 
-            // Normal üye yalnızca /surveys, /profile, /home/questions, /home/takesurvey'e girebilir
             if (!isAdmin) {
                 var userPaths = ["/surveys", "/profile", "/home/questions", "/home/takesurvey"];
                 var ok = userPaths.some(function(p){ return path.startsWith(p); });
                 if (!ok) { window.location.href = "/Surveys"; return; }
             }
 
-            // Ad badge
             var rawName = payload["unique_name"]
                 || payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"]
                 || "Kullanıcı";
@@ -179,7 +177,6 @@
                 badge.addClass("badge-primary").text("Portal Üyesi");
             }
 
-            // Profil foto
             var userId = payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"]
                       || payload["nameid"] || payload["sub"];
             if (userId) {

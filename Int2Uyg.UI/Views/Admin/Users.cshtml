@@ -3,7 +3,6 @@
 }
 
 <div class="row">
-    <!-- Kullanıcı Listesi -->
     <div class="col-md-8" id="listArea">
         <div class="card shadow mb-4">
             <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between bg-primary text-white">
@@ -29,7 +28,6 @@
         </div>
     </div>
 
-    <!-- Kullanıcı Düzenleme Paneli -->
     <div class="col-md-4" id="formArea" style="display:none;">
         <div class="card shadow mb-4 border-left-warning position-sticky" style="top: 1.5rem;">
             <div class="card-header py-3 bg-white">
@@ -148,7 +146,6 @@
                 });
             }
 
-            // Düzenle butonuna tıklayınca
             $(document).on("click", ".btnEdit", function () {
                 var userId = $(this).data("id");
                 selectedUserId = userId;
@@ -168,8 +165,6 @@
                         $("#editUserName").text(user.userName || user.UserName || "—");
                         $("#editEmail").text(user.email || user.Email || "—");
 
-                        // Mevcut rolü bulmak için JWT'deki kullanıcının rolünü kullanamazız,
-                        // listeden gelmiyor; varsayılan "Uye" seç
                         $("#cbRole").val("Uye");
                         $("#currentRoleBadge").text("Bilinmiyor");
 
@@ -181,7 +176,6 @@
                 });
             });
 
-            // Rol Değiştir
             $("#btnChangeRole").click(function () {
                 if (!selectedUserId) return;
 

@@ -2,8 +2,6 @@
 
 namespace Int2Uyg.UI.Controllers
 {
-    // ✅ Admin-only pages — role check is done in JavaScript
-    // (Full server-side auth would require cookie auth, but this project uses JWT + localStorage)
     [Route("admin")]
     public class AdminController : Controller
     {
@@ -14,7 +12,6 @@ namespace Int2Uyg.UI.Controllers
             _configuration = configuration;
         }
 
-        // GET /admin  → Admin dashboard
         [Route("")]
         [Route("index")]
         public IActionResult Index()
@@ -23,7 +20,6 @@ namespace Int2Uyg.UI.Controllers
             return View();
         }
 
-        // GET /admin/categories
         [Route("categories")]
         public IActionResult Categories()
         {
@@ -31,7 +27,6 @@ namespace Int2Uyg.UI.Controllers
             return View();
         }
 
-        // GET /admin/surveys
         [Route("surveys")]
         public IActionResult Surveys()
         {
@@ -39,7 +34,6 @@ namespace Int2Uyg.UI.Controllers
             return View();
         }
 
-        // GET /admin/questions/{id}
         [Route("questions/{id}")]
         public IActionResult Questions(int id)
         {
@@ -48,14 +42,13 @@ namespace Int2Uyg.UI.Controllers
             return View();
         }
 
-        // GET /admin/users
         [Route("users")]
         public IActionResult Users()
         {
             ViewBag.ApiBaseUrl = _configuration["ApiBaseUrl"];
             return View();
         }
-        // GET /admin/profile
+
         [Route("profile")]
         public IActionResult Profile()
         {

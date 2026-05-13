@@ -184,7 +184,6 @@
         $(document).ready(function () {
             var apiBaseUrl = "https://localhost:7258/api";
 
-            // Göz İkonu (Şifre Göster/Gizle)
             $("#togglePassword").click(function () {
                 var passwordInput = $("#txtPassword");
                 var icon = $(this);
@@ -198,7 +197,6 @@
                 }
             });
 
-            // Giriş İşlemi
             $("#btnLogin").click(function () {
                 var userName = $("#txtUserName").val().trim();
                 var password = $("#txtPassword").val();
@@ -225,7 +223,6 @@
                             localStorage.setItem("token", response.message);
                             showResult("Giriş Başarılı! Yönlendiriliyorsunuz...", "success");
                             setTimeout(function () {
-                                // Redirect based on role
                                 try {
                                     function parseJwt(t) {
                                         var b = t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');

@@ -11,7 +11,6 @@ namespace Int2Uyg.UI.Controllers
             _configuration = configuration;
         }
 
-        // Ana dizine geleni Login'e yönlendirir
         public IActionResult Index()
         {
             return RedirectToAction("Login");

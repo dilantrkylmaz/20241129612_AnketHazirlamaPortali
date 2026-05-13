@@ -37,7 +37,6 @@
                     <input type="hidden" id="txtId" />
                     <input type="hidden" id="hiddenPhotoUrl" />
 
-                    <!-- Anket Görseli -->
                     <div class="text-center mb-3">
                         <img src="/sbadmin/img/undraw_posting_photo.svg" id="surveyPicture"
                              class="img-fluid rounded shadow-sm mb-2"
@@ -54,20 +53,17 @@
                         </div>
                     </div>
 
-                    <!-- Başlık -->
                     <div class="form-group">
                         <label class="small font-weight-bold">Anket Başlığı <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="txtTitle" placeholder="Örn: Çalışan Memnuniyeti Anketi">
                     </div>
 
-                    <!-- ✅ FIX: Description alanı eklendi -->
                     <div class="form-group">
                         <label class="small font-weight-bold">Açıklama</label>
                         <textarea class="form-control" id="txtDescription" rows="3"
                                   placeholder="Anket hakkında kısa bir açıklama yazın..."></textarea>
                     </div>
 
-                    <!-- Kategori -->
                     <div class="form-group">
                         <label class="small font-weight-bold">Kategori <span class="text-danger">*</span></label>
                         <select class="form-control" id="cbCategory">
@@ -75,7 +71,6 @@
                         </select>
                     </div>
 
-                    <!-- Durum -->
                     <div class="form-group">
                         <div class="custom-control custom-checkbox small">
                             <input type="checkbox" class="custom-control-input" id="cbIsActive" checked>
@@ -135,7 +130,6 @@
             GetCategoriesForDropdown();
             GetSurveyList();
 
-            // --- Görsel seçme ---
             $("#fileInput").change(function (e) {
                 var file = e.target.files[0];
                 if (!file) return;
@@ -166,7 +160,6 @@
                 }
             });
 
-            // --- Anket Listesi ---
             function GetSurveyList() {
                 $.ajax({
                     url: apiBaseUrl + "/Survey/List",
@@ -210,7 +203,6 @@
                 });
             }
 
-            // --- KAYDET ---
             $("#btnSave").click(function () {
                 var title = $("#txtTitle").val().trim();
                 var catId = $("#cbCategory").val();
@@ -220,7 +212,6 @@
                     return;
                 }
 
-                // ✅ FIX: description artık formdan geliyor
                 var description = $("#txtDescription").val().trim() || "Açıklama belirtilmedi.";
 
                 var surveyData = {
@@ -253,7 +244,6 @@
                 });
             });
 
-            // --- GÜNCELLE ---
             $("#btnUpdate").click(function () {
                 var title = $("#txtTitle").val().trim();
                 var catId = $("#cbCategory").val();
@@ -263,7 +253,6 @@
                     return;
                 }
 
-                // ✅ FIX: description güncelleme sırasında da formdan geliyor
                 var description = $("#txtDescription").val().trim() || "Açıklama belirtilmedi.";
 
                 var surveyData = {
@@ -294,7 +283,6 @@
                 });
             });
 
-            // --- DÜZENLE (form doldur) ---
             $(document).on("click", ".btnEdit", function () {
                 var id = $(this).data("id");
                 $.ajax({
@@ -304,7 +292,6 @@
                     success: function (d) {
                         $("#txtId").val(d.id || d.Id);
                         $("#txtTitle").val(d.title || d.Title);
-                        // ✅ FIX: Mevcut açıklamayı forma yükle
                         var desc = d.description || d.Description || "";
                         $("#txtDescription").val(desc === "Açıklama belirtilmedi." ? "" : desc);
                         $("#cbCategory").val(d.categoryId || d.CategoryId);
@@ -325,7 +312,6 @@
                 });
             });
 
-            // --- SİL ---
             $("#btnDelete").click(function () {
                 var id = $("#txtId").val();
                 if (confirm("Bu anketi tamamen silmek istediğinize emin misiniz?")) {
@@ -344,7 +330,6 @@
                 }
             });
 
-            // --- Kategori Dropdown ---
             function GetCategoriesForDropdown() {
                 $.ajax({
                     url: apiBaseUrl + "/Category/List",

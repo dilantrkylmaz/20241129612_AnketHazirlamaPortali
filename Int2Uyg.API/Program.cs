@@ -17,7 +17,6 @@ namespace Int2Uyg.API
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Services.AddControllers();
-            // CORS Ayarı: MVC projesinden gelen AJAX isteklerine izin verir
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowAll", builder =>
@@ -68,12 +67,10 @@ namespace Int2Uyg.API
             {
                 options.User.RequireUniqueEmail = true;
 
-                // ✅ FIX #2: Relaxed password policy to avoid demo surprises
                 options.Password.RequireUppercase = true;
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequireDigit = false;
 
-                // ✅ FIX #3: Less aggressive lockout for demo safety
                 options.Lockout.MaxFailedAccessAttempts = 5;
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(1);
             })
@@ -151,13 +148,10 @@ namespace Int2Uyg.API
                 app.UseSwaggerUI();
             }
 
-            // ✅ FIX #1: Correct middleware order
             app.UseHttpsRedirection();
 
-            // 1. Resimlerin (wwwroot) dışarıdan okunabilmesi için
             app.UseStaticFiles();
 
-            // 2. CORS politikamızın devreye girmesi (Mutlaka UseRouting ve Auth'dan önce olmalı)
             app.UseCors("AllowAll");
 
             app.UseAuthentication();

@@ -199,7 +199,6 @@
             color: #6c63ff;
         }
 
-    /* Loading */
     .loading-container {
         display: flex;
         flex-direction: column;
@@ -211,7 +210,6 @@
 </style>
 
 <div class="survey-container">
-    <!-- Hero bölümü: başlık + geri dön butonu -->
     <div class="survey-hero">
         <h1 id="surveyTitle"><i class="fas fa-spinner fa-spin mr-2"></i> Anket Yükleniyor...</h1>
         <a href="/user/browse" class="back-btn">
@@ -219,9 +217,7 @@
         </a>
     </div>
 
-    <!-- Soruların listeleneceği alan -->
     <div id="questionsArea">
-        <!-- Yükleniyor -->
         <div id="loadingDiv" class="loading-container">
             <i class="fas fa-spinner fa-spin fa-3x mb-3" style="color:#6c63ff;"></i>
             <p class="font-weight-bold">Sorular Yükleniyor...</p>
@@ -255,7 +251,6 @@
                              || payload["nameid"]
                              || payload["Id"];
 
-            // 1. Anket Başlığını Getir
             $.ajax({
                 url: apiBaseUrl + "/Survey/GetById/" + currentSurveyId,
                 type: "GET",
@@ -268,7 +263,6 @@
                 error: function() { alert("Anket bulunamadı!"); window.location.href="/user/browse"; }
             });
 
-            // 2. Soruları Ekrana Çiz
             function GetQuestions() {
                 $.ajax({
                     url: apiBaseUrl + "/Question/GetQuestionsBySurveyId/" + currentSurveyId,
@@ -304,7 +298,6 @@
                             if (qId) { LoadOptions(qId); }
                         });
 
-                        // Gönder butonu
                         var submitBtn = `
                             <div class="submit-section">
                                 <button class="btn-submit" id="btnSubmitSurvey">
@@ -320,7 +313,6 @@
                 });
             }
 
-            // 3. Şıkları Yükle
             function LoadOptions(qId) {
                 $.ajax({
                     url: apiBaseUrl + "/QuestionOption/GetOptionsByQuestionId/" + qId,
@@ -351,14 +343,12 @@
                 });
             }
 
-            // 4. Seçim işlemi
             $(document).on("click", ".option-item:not(.locked)", function () {
                 var $this = $(this);
                 $this.siblings('.option-item').removeClass('selected');
                 $this.addClass('selected');
             });
 
-            // 5. Anketi Gönder
             $(document).on("click", "#btnSubmitSurvey", function () {
                 var selectedOptions = $(".option-item.selected");
                 var totalQuestions = $(".question-card").length;

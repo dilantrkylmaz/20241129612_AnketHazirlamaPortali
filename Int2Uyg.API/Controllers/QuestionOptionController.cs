@@ -25,7 +25,6 @@ namespace Int2Uyg.API.Controllers
         [HttpGet("{questionId}")]
         public async Task<List<QuestionOptionDto>> GetOptionsByQuestionId(int questionId)
         {
-            // Sadece aktif ve silinmemiş şıkları getir
             var filteredOptions = await _optionRepository
                 .Where(o => o.QuestionId == questionId && o.IsActive && !o.IsDeleted)
                 .ToListAsync();
@@ -35,7 +34,7 @@ namespace Int2Uyg.API.Controllers
         [HttpPost]
         public async Task<ResultDto> Add(QuestionOptionDto dto)
         {
-            var result = new ResultDto(); // Thread-safe
+            var result = new ResultDto(); 
 
             if (string.IsNullOrWhiteSpace(dto.OptionText))
             {
@@ -57,7 +56,7 @@ namespace Int2Uyg.API.Controllers
         [HttpPut]
         public async Task<ResultDto> Update(QuestionOptionDto dto)
         {
-            var result = new ResultDto(); // Thread-safe
+            var result = new ResultDto(); 
             var option = _mapper.Map<QuestionOption>(dto);
             option.Question = null;
 
@@ -71,7 +70,7 @@ namespace Int2Uyg.API.Controllers
         [HttpDelete("{id}")]
         public async Task<ResultDto> Delete(int id)
         {
-            var result = new ResultDto(); // Thread-safe
+            var result = new ResultDto(); 
 
             var option = await _optionRepository.GetByIdAsync(id);
             if (option == null)
@@ -81,7 +80,6 @@ namespace Int2Uyg.API.Controllers
                 return result;
             }
 
-            // Hard Delete (Veritabanından uçurmak) yerine Soft Delete yapıyoruz
             option.IsDeleted = true;
             option.IsActive = false;
 

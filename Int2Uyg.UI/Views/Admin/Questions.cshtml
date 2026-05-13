@@ -250,7 +250,6 @@
                 });
             });
 
-            // ✅ Soru ekleme (QuestionOptions: [] eklendi)
             $("#btnSaveQuestion").click(function () {
                 const text = $("#txtQuestionContent").val().trim();
                 if (!text) {
@@ -269,7 +268,7 @@
                     data: JSON.stringify({
                         SurveyId: currentSurveyId,
                         Text: text,
-                        QuestionOptions: []   // ⚡ Boş liste gönderiliyor
+                        QuestionOptions: []   
                     }),
                     success: function () {
                         $("#txtQuestionContent").val("");

@@ -32,7 +32,6 @@ namespace Int2Uyg.API.Controllers
         [HttpGet("{surveyId}")]
         public async Task<List<QuestionDto>> GetQuestionsBySurveyId(int surveyId)
         {
-            // ✅ Soft‑delete kontrolü eklenmiş hâli
             var filteredQuestions = await _questionRepository
                 .Where(q => q.SurveyId == surveyId && !q.IsDeleted)
                 .ToListAsync();
@@ -45,7 +44,6 @@ namespace Int2Uyg.API.Controllers
         [Authorize]
         public async Task<ResultDto> Add(QuestionDto dto)
         {
-            // ✅ Her istek için yeni ResultDto (thread‑safe)
             var result = new ResultDto();
 
             if (string.IsNullOrWhiteSpace(dto.Text))
@@ -57,13 +55,10 @@ namespace Int2Uyg.API.Controllers
 
             var question = _mapper.Map<Question>(dto);
 
-            // ✅ Survey navigasyonunu null'la (tracking sorunları engellenir)
             question.Survey = null;
 
-            // ✅ QuestionOptions listesini garantile (AutoMapper null yapmış olabilir)
             question.QuestionOptions ??= new List<QuestionOption>();
 
-            // ✅ Eklenen sorunun varsayılan olarak aktif olmasını sağla
             question.IsActive = true;
 
             await _questionRepository.AddAsync(question);
@@ -89,7 +84,7 @@ namespace Int2Uyg.API.Controllers
             var question = _mapper.Map<Question>(dto);
             question.Survey = null;
             question.QuestionOptions ??= new List<QuestionOption>();
-            question.IsActive = dto.IsActive; // Güncellemede gönderilen değeri kullan
+            question.IsActive = dto.IsActive; 
 
             await _questionRepository.UpdateAsync(question);
 

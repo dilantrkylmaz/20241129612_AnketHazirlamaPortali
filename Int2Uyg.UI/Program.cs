@@ -27,7 +27,6 @@ namespace Int2Uyg.UI
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
-            // Anasayfa Home'a gidecek, o da otomatik Login'e yönlendirecek.
 
             app.Run();
         }

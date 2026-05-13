@@ -157,27 +157,23 @@
     }
 </style>
 
-<!-- Page header -->
 <div class="page-header-user">
     <h1>Anketleri Keşfet</h1>
     <p>Kategorilere göre filtrele, ilgini çeken ankete katıl.</p>
 </div>
 
-<!-- Filter bar -->
 <div class="filter-bar">
     <i class="fas fa-search text-muted"></i>
     <input type="text" id="searchInput" placeholder="Anket ara...">
 </div>
 
-<!-- Category pills -->
+
 <div class="category-pills" id="categoryPills">
     <span class="cat-pill active" data-id="0">Tümü</span>
 </div>
 
-<!-- Result count -->
 <div class="result-count" id="resultCount"></div>
 
-<!-- Survey grid -->
 <div class="survey-grid" id="surveyGrid">
     <div class="empty-state">
         <i class="fas fa-spinner fa-spin"></i>
@@ -241,7 +237,6 @@
                 $("#surveyGrid").html(html);
             }
 
-            // Load categories
             $.ajax({
                 url: api + "/Category/List", type: "GET",
                 headers: { "Authorization": "Bearer " + token },
@@ -255,7 +250,6 @@
                 }
             });
 
-            // Load surveys
             $.ajax({
                 url: api + "/Survey/List", type: "GET",
                 headers: { "Authorization": "Bearer " + token },
@@ -268,7 +262,6 @@
                 }
             });
 
-            // Category filter
             $(document).on("click", ".cat-pill", function() {
                 $(".cat-pill").removeClass("active");
                 $(this).addClass("active");
@@ -276,7 +269,6 @@
                 renderSurveys(allSurveys);
             });
 
-            // Search
             $("#searchInput").on("input", function() {
                 renderSurveys(allSurveys);
             });

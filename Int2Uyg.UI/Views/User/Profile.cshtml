@@ -150,7 +150,6 @@
 
 <div class="profile-container">
     <div class="profile-card">
-        <!-- Profil başlığı (fotoğraf + isim) -->
         <div class="profile-header">
             <div class="profile-avatar-wrapper">
                 <img src="/sbadmin/img/undraw_profile.svg" id="userPicture" class="profile-avatar"
@@ -166,7 +165,6 @@
             </div>
         </div>
 
-        <!-- Düzenleme formu -->
         <form id="frmProfile">
             <div class="form-grid">
                 <div class="form-group-user">
@@ -217,7 +215,6 @@
             var roles = payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
             var isAdmin = roles && (roles === "Admin" || roles.includes("Admin"));
 
-            // Rol rozetini güncelle
             if (isAdmin) {
                 $("#roleBadge").text("Admin").css("background","#d1fae5").css("color","#065f46");
             } else {
@@ -249,7 +246,6 @@
                 });
             }
 
-            // Profil fotoğrafı yükleme
             $("#fileInput").change(function () {
                 var file = this.files[0];
                 if (!file) return;
@@ -288,7 +284,6 @@
                 });
             }
 
-            // Bilgileri güncelle
             $("#btnSave").click(function () {
                 var userData = {
                     FullName: $("#txtFullName").val(),

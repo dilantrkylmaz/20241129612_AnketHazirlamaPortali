@@ -39,7 +39,6 @@
             flex-direction: column;
         }
 
-        /* ── NAVBAR ── */
         .user-navbar {
             background: rgba(255,255,255,0.92);
             backdrop-filter: blur(12px);
@@ -162,7 +161,6 @@
                 color: var(--accent);
             }
 
-        /* ── MAIN CONTENT ── */
         .user-main {
             flex: 1;
             padding: 2rem;
@@ -171,7 +169,6 @@
             margin: 0 auto;
         }
 
-        /* ── PAGE HEADER ── */
         .page-header-user {
             margin-bottom: 2rem;
         }
@@ -189,7 +186,6 @@
                 margin-top: 4px;
             }
 
-        /* ── CARDS ── */
         .card-user {
             background: var(--white);
             border-radius: var(--radius);
@@ -204,7 +200,6 @@
                 box-shadow: 0 8px 32px rgba(108,99,255,0.14);
             }
 
-        /* ── BUTTONS ── */
         .btn-primary-user {
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: white;
@@ -228,7 +223,6 @@
                 color: white;
             }
 
-        /* ── BADGES ── */
         .badge-user {
             display: inline-flex;
             align-items: center;
@@ -250,7 +244,6 @@
             color: #991b1b;
         }
 
-        /* ── FOOTER ── */
         .user-footer {
             background: var(--white);
             border-top: 1px solid rgba(108,99,255,0.08);
@@ -261,7 +254,6 @@
             font-family: 'DM Sans', sans-serif;
         }
 
-        /* ── DECORATIVE BG ── */
         .bg-blob {
             position: fixed;
             border-radius: 50%;
@@ -287,7 +279,6 @@
             left: -80px;
         }
 
-        /* ── RESPONSIVE ── */
         @@media (max-width: 768px) {
             .user-navbar {
                 padding: 0 1rem;
@@ -307,11 +298,9 @@
 </head>
 
 <body>
-    <!-- Decorative blobs -->
     <div class="bg-blob bg-blob-1"></div>
     <div class="bg-blob bg-blob-2"></div>
 
-    <!-- Navbar -->
     <nav class="user-navbar">
         <a class="navbar-brand-user" href="/user">
             <div class="brand-icon"><i class="fas fa-clipboard-list"></i></div>
@@ -325,7 +314,6 @@
         </ul>
 
         <div class="navbar-user-area">
-            <!-- Admin panel geçiş butonu (sadece admin) -->
             <a class="btn-primary-user" href="/admin" id="btnAdminPanel"
                style="display:none; padding:6px 14px; font-size:0.8rem; margin-right:8px;">
                 <i class="fas fa-user-shield mr-1"></i> Yönetim
@@ -342,12 +330,10 @@
         </div>
     </nav>
 
-    <!-- Main content -->
     <main class="user-main" style="position: relative; z-index: 1;">
         @RenderBody()
     </main>
 
-    <!-- Footer -->
     <footer class="user-footer">
         Anket Portalı &copy; @DateTime.Now.Year — Tüm hakları saklıdır.
     </footer>
@@ -388,7 +374,6 @@
                     || "Kullanıcı";
                 $("#topUserName").text(toTitleCase(rawName));
 
-                // ---------- ADMIN KONTROLÜ ----------
                 var roles = payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
                 var isAdmin = roles && (roles === "Admin" || roles.includes("Admin"));
                 if (isAdmin) {
@@ -411,7 +396,6 @@
                 }
             }
 
-            // Active nav link
             if (path === "/user" || path === "/user/") $("#navHome").addClass("active");
             else if (path.includes("/user/browse")) $("#navBrowse").addClass("active");
             else if (path.includes("/user/profile")) $("#navProfile").addClass("active");

@@ -152,7 +152,6 @@ namespace Int2Uyg.API.Controllers
             return _result;
         }
 
-        // ---------- RAPOR ENDPOINTI ----------
         [HttpGet("{id}")]
         [Authorize(Roles = "Admin")]
         [ActionName("Report")]

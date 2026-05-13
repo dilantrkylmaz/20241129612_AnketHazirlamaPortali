@@ -2,7 +2,6 @@
 
 namespace Int2Uyg.UI.Controllers
 {
-    // ✅ User-facing pages - accessible to all logged-in users
     [Route("user")]
     public class UserController : Controller
     {
@@ -13,7 +12,6 @@ namespace Int2Uyg.UI.Controllers
             _configuration = configuration;
         }
 
-        // GET /user  → User dashboard / home
         [Route("")]
         [Route("index")]
         public IActionResult Index()
@@ -22,7 +20,6 @@ namespace Int2Uyg.UI.Controllers
             return View();
         }
 
-        // GET /user/browse  → Browse all surveys by category
         [Route("browse")]
         public IActionResult Browse()
         {
@@ -30,7 +27,6 @@ namespace Int2Uyg.UI.Controllers
             return View();
         }
 
-        // GET /user/survey/{id}  → Take a specific survey
         [Route("survey/{id}")]
         public IActionResult Survey(int id)
         {
@@ -39,7 +35,6 @@ namespace Int2Uyg.UI.Controllers
             return View();
         }
 
-        // GET /user/profile  → User profile page
         [Route("profile")]
         public IActionResult Profile()
         {

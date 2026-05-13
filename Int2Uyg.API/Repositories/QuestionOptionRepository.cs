@@ -13,8 +13,6 @@ namespace Int2Uyg.API.Repositories
             await _context.SaveChangesAsync();
         }
 
-        // ✅ BUG #6 FIX: Changed from hard delete (Remove) to soft delete (IsDeleted = true)
-        // to be consistent with GenericRepository and all other repositories
         public override async Task DeleteAsync(int id)
         {
             var entity = await _context.QuestionOptions.FindAsync(id);
